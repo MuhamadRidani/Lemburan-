@@ -1,0 +1,2068 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Lemburan Karyawan UT TOWER BJM</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+    :root {
+        --bg-primary: #f0f4f8; --bg-secondary: #ffffff; --bg-tertiary: #f8fafc;
+        --text-primary: #1e293b; --text-secondary: #475569; --text-muted: #94a3b8;
+        --border: #e2e8f0; --primary: #3b82f6; --primary-dark: #1e40af;
+        --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+        --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    [data-theme="dark"] {
+        --bg-primary: #0f172a; --bg-secondary: #1e293b; --bg-tertiary: #334155;
+        --text-primary: #f1f5f9; --text-secondary: #cbd5e1; --text-muted: #64748b;
+        --border: #334155; --primary: #60a5fa; --primary-dark: #3b82f6;
+        --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: var(--bg-primary); padding: 20px; color: var(--text-primary); min-height: 100vh; transition: background-color 0.3s, color 0.3s; }
+
+    .login-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #1e3a8a, #7c3aed); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px; }
+    .login-screen.hidden { display: none; }
+    .login-box { background: #ffffff; padding: 40px; border-radius: 16px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); }
+    .login-box h1 { text-align: center; margin-bottom: 8px; font-size: 1.6rem; color: #1e293b; }
+    .login-box .subtitle { text-align: center; color: #64748b; margin-bottom: 30px; font-size: 0.9rem; }
+    .login-box input { width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; background: #f8fafc; color: #1e293b; outline: none; }
+    .login-box input:focus { border-color: #3b82f6; background: #fff; }
+    .login-box button { width: 100%; padding: 13px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+    .login-box button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); }
+    .login-error { color: #dc2626; font-size: 0.85rem; text-align: center; margin-bottom: 10px; min-height: 20px; font-weight: 600; }
+
+    .app.hidden { display: none; }
+    .container { max-width: 1500px; margin: 0 auto; background: var(--bg-secondary); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+
+    .header { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: #fff; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+    .header h1 { font-size: 1.25rem; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .header h1 .tower-badge { background: rgba(255, 255, 255, 0.2); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px; border: 1px solid rgba(255, 255, 255, 0.3); }
+    .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+    .user-badge { background: rgba(255, 255, 255, 0.15); padding: 6px 16px 6px 6px; border-radius: 30px; font-size: 0.85rem; border: 1px solid rgba(255, 255, 255, 0.25); display: flex; align-items: center; gap: 10px; cursor: pointer; transition: background 0.2s; user-select: none; }
+    .user-badge:hover { background: rgba(255, 255, 255, 0.25); }
+    .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 1.05rem; overflow: hidden; flex-shrink: 0; border: 2px solid rgba(255, 255, 255, 0.4); position: relative; }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+    .user-avatar .edit-icon { position: absolute; bottom: -2px; right: -2px; background: var(--primary); border-radius: 50%; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; border: 2px solid #1e3a8a; opacity: 0; transition: opacity 0.2s; }
+    .user-badge:hover .user-avatar .edit-icon { opacity: 1; }
+    .icon-btn { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; }
+    .icon-btn:hover { background: rgba(255, 255, 255, 0.3); }
+
+    .tabs { display: flex; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); overflow-x: auto; }
+    .tab { padding: 15px 22px; cursor: pointer; font-weight: 600; font-size: 0.88rem; color: var(--text-secondary); border-bottom: 3px solid transparent; white-space: nowrap; user-select: none; }
+    .tab:hover { background: var(--bg-secondary); color: var(--primary); }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); background: var(--bg-secondary); }
+    .tab.hidden { display: none !important; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .periode-bar { background: linear-gradient(135deg, #eff6ff 0%, #f5f3ff 50%, #fce7f3 100%); padding: 20px 30px; border-bottom: 1px solid var(--border); display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; }
+    [data-theme="dark"] .periode-bar { background: linear-gradient(135deg, #1e293b 0%, #1e1b4b 50%, #2e1065 100%); }
+    .periode-item { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 130px; }
+    .periode-item label { font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; display: flex; align-items: center; gap: 5px; }
+    .periode-item select, .periode-item input { padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 0.95rem; font-weight: 600; background: var(--bg-secondary); color: var(--text-primary); outline: none; cursor: pointer; transition: all 0.2s; width: 100%; }
+    .periode-item select:hover, .periode-item input:hover { border-color: var(--primary); }
+    .periode-item select:focus, .periode-item input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); transform: translateY(-1px); }
+    .periode-highlight { background: var(--bg-secondary); border: 2px solid var(--primary); border-radius: 12px; padding: 12px 20px; display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--primary); font-size: 1rem; box-shadow: 0 6px 16px rgba(59, 130, 246, 0.2); white-space: nowrap; }
+    .admin-only { display: flex; }
+    .admin-only.hidden { display: none !important; }
+
+    .form-cepat {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        padding: 16px 30px;
+        border-bottom: 2px solid #f59e0b;
+    }
+    [data-theme="dark"] .form-cepat { background: linear-gradient(135deg, #78350f 0%, #92400e 100%); }
+    .form-cepat-title { font-size: 0.85rem; font-weight: 800; color: #92400e; margin-bottom: 10px; letter-spacing: 0.5px; }
+    [data-theme="dark"] .form-cepat-title { color: #fde68a; }
+    .form-cepat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; align-items: end; }
+    .form-cepat-item { display: flex; flex-direction: column; gap: 4px; }
+    .form-cepat-item label { font-size: 0.7rem; font-weight: 700; color: #78350f; text-transform: uppercase; letter-spacing: 0.5px; }
+    [data-theme="dark"] .form-cepat-item label { color: #fcd34d; }
+    .form-cepat-item select { padding: 10px 12px; border: 2px solid #d97706; border-radius: 8px; font-size: 0.88rem; font-weight: 700; background: #fff; color: #78350f; outline: none; cursor: pointer; font-family: 'Courier New', monospace; }
+    [data-theme="dark"] .form-cepat-item select { background: #1e293b; color: #fde68a; border-color: #d97706; }
+    .form-cepat-item select:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25); }
+
+    .hari-kerja-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; padding: 20px 30px; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); }
+    .stat-chip { background: var(--bg-secondary); padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border); display: flex; align-items: center; gap: 12px; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; }
+    .stat-chip:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08); border-color: var(--primary); }
+    .stat-chip.clickable { cursor: pointer; position: relative; }
+    .stat-chip.clickable:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35); border-color: #f59e0b; }
+    .stat-chip.clickable:active { transform: scale(0.98); }
+    .stat-chip.clickable::after { content: '👆 Klik detail'; position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%); background: #f59e0b; color: #fff; font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 5; }
+    .stat-chip.clickable:hover::after { opacity: 1; }
+    .stat-chip .icon-box { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+    .stat-chip.blue .icon-box { background: rgba(59, 130, 246, 0.15); }
+    .stat-chip.green .icon-box { background: rgba(16, 185, 129, 0.15); }
+    .stat-chip.yellow .icon-box { background: rgba(245, 158, 11, 0.15); }
+    .stat-chip.purple .icon-box { background: rgba(139, 92, 246, 0.15); }
+    .stat-chip.red .icon-box { background: rgba(239, 68, 68, 0.15); }
+    .stat-chip .chip-info { display: flex; flex-direction: column; min-width: 0; }
+    .stat-chip .chip-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+    .stat-chip .chip-value { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
+
+    .table-wrapper { overflow-x: auto; padding: 0; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.9rem; }
+    thead { position: sticky; top: 0; z-index: 10; }
+    thead th { background: linear-gradient(135deg, #1e40af, #3b82f6); color: #fff; padding: 14px 6px; text-align: center; font-weight: 700; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; border-bottom: 2px solid #1e3a8a; }
+    thead th.col-lembur-pulang { background: linear-gradient(135deg, #d97706, #f59e0b); }
+    thead th.col-istirahat { background: linear-gradient(135deg, #0891b2, #06b6d4); }
+
+    tbody tr { transition: background 0.2s; border-bottom: 1px solid var(--border); }
+    tbody tr:nth-child(even) { background: var(--bg-tertiary); }
+    tbody tr:hover { background: linear-gradient(90deg, rgba(59, 130, 246, 0.08), rgba(139, 92, 246, 0.05)); }
+    tbody td { padding: 10px 5px; text-align: center; border-bottom: 1px solid var(--border); color: var(--text-primary); vertical-align: middle; }
+
+    .hari-cell { font-weight: 600; }
+    .hari-kerja { color: var(--text-primary); }
+    .hari-sabtu { color: #dc2626; font-weight: 700; background: rgba(220, 38, 38, 0.06); }
+    .hari-minggu { color: #dc2626; font-weight: 700; background: rgba(220, 38, 38, 0.12); }
+    .hari-libur-nasional { color: #b91c1c; font-weight: 800; background: rgba(239, 68, 68, 0.18); }
+    .hari-libur-nasional::after { content: '🎉'; font-size: 0.7rem; margin-left: 4px; vertical-align: super; }
+
+    tbody tr.row-libur-nasional { border-left: 4px solid #dc2626; }
+    tbody tr.row-libur-nasional td.tanggal-cell { background: rgba(220, 38, 38, 0.10); color: #b91c1c; }
+    tbody tr.row-sabtu { background: rgba(245, 158, 11, 0.06) !important; border-left: 4px solid #f59e0b; }
+    tbody tr.row-minggu { background: rgba(239, 68, 68, 0.06) !important; border-left: 4px solid #dc2626; }
+    tbody tr.row-sabtu td.tanggal-cell { background: rgba(245, 158, 11, 0.15); color: #d97706; }
+    tbody tr.row-minggu td.tanggal-cell { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
+
+    .tanggal-cell { font-weight: 700; font-size: 0.95rem; color: var(--primary); background: rgba(59, 130, 246, 0.06); border-radius: 8px; }
+
+    .input-jam { width: 68px; padding: 8px 3px; border: 2px solid var(--border); border-radius: 8px; text-align: center; font-size: 0.82rem; background: var(--bg-secondary); color: var(--text-primary); font-weight: 700; transition: all 0.2s; font-family: 'Courier New', monospace; }
+    .input-jam.readonly-normal { background: linear-gradient(135deg, rgba(100, 116, 139, 0.08), rgba(148, 163, 184, 0.05)); color: var(--text-secondary); border-color: var(--border); cursor: default; font-weight: 600; }
+    .input-jam.editable-libur { background: linear-gradient(135deg, rgba(245, 158, 11, 0.10), rgba(239, 68, 68, 0.05)); border-color: #f59e0b; color: #d97706; font-weight: 800; }
+    .input-jam.editable-libur:hover { border-color: #d97706; }
+    .input-jam.editable-libur:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25); }
+    .input-jam:disabled { background: var(--bg-tertiary); color: var(--text-muted); cursor: not-allowed; opacity: 0.6; }
+    .input-jam.invalid { border-color: var(--danger); background: rgba(239, 68, 68, 0.08); }
+
+    .lembur-pulang-input { border-color: #f59e0b !important; background: rgba(245, 158, 11, 0.08) !important; font-weight: 800 !important; color: #d97706 !important; }
+    .lembur-pulang-input:hover { border-color: #d97706 !important; }
+    .lembur-pulang-input:focus { border-color: #d97706 !important; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3) !important; }
+    .lembur-pulang-input::placeholder { color: #d97706; font-weight: 600; opacity: 0.5; }
+
+    .select-istirahat { width: 68px; padding: 6px 3px; border: 2px solid #06b6d4; border-radius: 8px; font-size: 0.75rem; font-weight: 700; background: rgba(6, 182, 212, 0.08); color: #0891b2; cursor: pointer; outline: none; font-family: 'Courier New', monospace; }
+    .select-istirahat:hover { border-color: #0891b2; }
+    .select-istirahat:focus { box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.25); }
+    .istirahat-disabled { display: inline-flex; align-items: center; justify-content: center; width: 68px; padding: 8px 3px; border: 2px dashed var(--border); border-radius: 8px; font-size: 0.8rem; color: var(--text-muted); font-weight: 600; background: var(--bg-tertiary); font-family: 'Courier New', monospace; min-height: 36px; }
+
+    .konversi-badge { display: inline-block; padding: 5px 9px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15)); color: var(--primary); border-radius: 20px; font-weight: 700; font-size: 0.78rem; min-width: 42px; border: 1px solid rgba(59, 130, 246, 0.2); }
+    .lembur-badge { background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.15)) !important; color: #d97706 !important; border-color: rgba(245, 158, 11, 0.3) !important; }
+    .gaji-badge { display: inline-block; padding: 5px 9px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.15)); color: var(--success); border-radius: 20px; font-weight: 700; font-size: 0.75rem; border: 1px solid rgba(16, 185, 129, 0.2); white-space: nowrap; }
+
+    .status-select { width: 85px; padding: 6px 6px; border: 2px solid var(--border); border-radius: 8px; font-size: 0.75rem; font-weight: 600; background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; outline: none; }
+    .status-select:hover { border-color: var(--primary); }
+
+    .keterangan-cell { font-size: 0.7rem; font-weight: 600; text-align: left !important; padding: 6px 8px !important; border-radius: 6px; max-width: 160px; white-space: normal; line-height: 1.3; }
+    .ket-libur-nasional { color: #b91c1c; background: rgba(239, 68, 68, 0.12); border-left: 3px solid #dc2626; }
+    .ket-cuti { color: #92400e; background: rgba(245, 158, 11, 0.12); border-left: 3px solid #f59e0b; }
+    .ket-off { color: #6d28d9; background: rgba(139, 92, 246, 0.12); border-left: 3px solid #8b5cf6; }
+    .ket-weekend { color: #64748b; background: rgba(100, 116, 139, 0.08); border-left: 3px solid #94a3b8; }
+    .ket-lembur { color: #1d4ed8; background: rgba(59, 130, 246, 0.10); border-left: 3px solid #3b82f6; }
+    .ket-kerja { color: #047857; background: rgba(16, 185, 129, 0.08); border-left: 3px solid #10b981; }
+
+    .lembur-detail { font-size: 0.58rem; color: var(--text-muted); margin-top: 3px; line-height: 1.2; text-align: center; }
+    .lembur-detail .lembur-item { display: block; }
+    .lembur-detail .lembur-item.item-sebelum { color: #dc2626; }
+    .lembur-detail .lembur-item.item-wajib { color: #d97706; font-weight: 700; }
+    .lembur-detail .lembur-item.item-tambahan { color: #059669; }
+
+    tfoot { position: sticky; bottom: 0; z-index: 9; }
+    tfoot td { padding: 16px 6px; background: linear-gradient(135deg, #1e3a8a, #1e40af); color: #fff; font-weight: 700; font-size: 0.88rem; border-top: 3px solid #fbbf24; text-align: center; }
+    .total-label { text-align: right; padding-right: 20px !important; letter-spacing: 1px; }
+    .grand-total { color: #fbbf24 !important; font-size: 1.05rem !important; font-weight: 900 !important; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); }
+    .total-badge { display: inline-block; padding: 6px 14px; background: rgba(255, 255, 255, 0.15); border-radius: 20px; font-weight: 700; }
+
+    .actions { padding: 20px 30px; display: flex; gap: 12px; flex-wrap: wrap; background: var(--bg-tertiary); border-top: 1px solid var(--border); }
+    .btn { padding: 11px 20px; border: none; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15); }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-warning { background: var(--warning); color: #fff; }
+    .btn-danger  { background: var(--danger); color: #fff; }
+    .btn-secondary { background: var(--text-secondary); color: #fff; }
+    .btn-purple { background: #8b5cf6; color: #fff; }
+    .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; padding: 25px 30px; }
+    .stat-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 15px; }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+    .stat-icon { width: 55px; height: 55px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; }
+    .stat-icon.blue { background: rgba(59, 130, 246, 0.15); }
+    .stat-icon.green { background: rgba(16, 185, 129, 0.15); }
+    .stat-icon.yellow { background: rgba(245, 158, 11, 0.15); }
+    .stat-icon.purple { background: rgba(139, 92, 246, 0.15); }
+    .stat-icon.red { background: rgba(239, 68, 68, 0.15); }
+    .stat-info h3 { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 5px; }
+    .stat-info p { font-size: 1.35rem; font-weight: bold; color: var(--text-primary); }
+
+    .chart-container { padding: 20px 30px 30px; }
+    .chart-wrapper { background: var(--bg-tertiary); border-radius: 12px; padding: 25px; border: 1px solid var(--border); margin-bottom: 20px; }
+    .chart-wrapper h3 { margin-bottom: 20px; color: var(--text-primary); font-size: 1.1rem; }
+    .chart-canvas-wrapper { position: relative; height: 320px; }
+
+    .konversi-ref { padding: 20px 30px; }
+    .konversi-ref h3 { margin-bottom: 15px; color: var(--text-primary); font-size: 1.05rem; }
+    .konversi-ref table { font-size: 0.85rem; max-width: 600px; }
+    .konversi-ref thead { background: #3b82f6; position: static; }
+    .konversi-ref thead th { background: #3b82f6; }
+    .konversi-ref tbody td { padding: 6px 12px; }
+    .konversi-input { width: 80px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 5px; text-align: center; font-size: 0.85rem; background: var(--bg-secondary); color: var(--text-primary); font-weight: 600; }
+
+    .history-container { padding: 25px 30px; }
+    .history-list { display: flex; flex-direction: column; gap: 12px; }
+    .history-item { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 10px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .history-item:hover { border-color: var(--primary); }
+    .history-info h4 { color: var(--text-primary); font-size: 0.95rem; margin-bottom: 4px; }
+    .history-info p { font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+    .history-actions { display: flex; gap: 8px; }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 15px; opacity: 0.5; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: var(--bg-secondary); border-radius: 12px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); }
+    .modal-header { padding: 20px 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h2 { font-size: 1.2rem; color: var(--text-primary); }
+    .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); line-height: 1; }
+    .modal-body { padding: 25px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+    .form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-tertiary); color: var(--text-primary); font-size: 0.9rem; outline: none; }
+    .form-group input:focus, .form-group select:focus { border-color: var(--primary); }
+    .modal-footer { padding: 15px 25px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+
+    .libur-summary { background: linear-gradient(135deg, #fef2f2, #fee2e2); padding: 16px 20px; border-radius: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #dc2626; }
+    [data-theme="dark"] .libur-summary { background: linear-gradient(135deg, #1e1b1b, #2e1616); }
+    .libur-summary .summary-label { font-size: 0.8rem; color: #991b1b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    [data-theme="dark"] .libur-summary .summary-label { color: #fca5a5; }
+    .libur-summary .summary-value { font-size: 1.5rem; font-weight: 900; color: #dc2626; }
+    .libur-list { display: flex; flex-direction: column; gap: 10px; max-height: 55vh; overflow-y: auto; padding-right: 5px; }
+    .libur-item { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: var(--bg-tertiary); border-radius: 10px; border-left: 4px solid #dc2626; transition: all 0.2s; }
+    .libur-item:hover { transform: translateX(4px); box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15); background: rgba(239, 68, 68, 0.08); }
+    .libur-date { font-weight: 900; font-size: 1.1rem; color: #fff; background: linear-gradient(135deg, #dc2626, #b91c1c); min-width: 50px; height: 50px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; flex-shrink: 0; box-shadow: 0 3px 8px rgba(220, 38, 38, 0.3); }
+    .libur-date small { font-size: 0.55rem; font-weight: 600; text-transform: uppercase; opacity: 0.9; margin-top: 2px; }
+    .libur-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+    .libur-hari { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+    .libur-nama { font-size: 0.95rem; font-weight: 700; color: #b91c1c; word-wrap: break-word; }
+    [data-theme="dark"] .libur-nama { color: #fca5a5; }
+    .libur-empty { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    .libur-empty .icon { font-size: 3rem; margin-bottom: 10px; opacity: 0.5; }
+
+    .user-card { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 10px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+    .user-card:hover { border-color: var(--primary); }
+    .user-card-content { display: flex; align-items: center; gap: 15px; flex: 1; min-width: 200px; }
+    .user-card-avatar { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; overflow: hidden; flex-shrink: 0; border: 2px solid var(--border); color: #fff; }
+    .user-card-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+    .user-card .user-info h4 { color: var(--text-primary); margin-bottom: 4px; }
+    .user-card .user-info p { font-size: 0.8rem; color: var(--text-muted); }
+    .role-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; margin-left: 6px; }
+    .role-admin { background: #dbeafe; color: #1e40af; }
+    .role-user { background: #dcfce7; color: #166534; }
+
+    .avatar-upload-section { display: flex; align-items: center; gap: 20px; padding: 15px; background: var(--bg-tertiary); border-radius: 10px; margin-bottom: 20px; }
+    .avatar-preview { width: 120px; height: 120px; border-radius: 12px; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #fff; overflow: hidden; flex-shrink: 0; border: 3px solid var(--border); position: relative; }
+    .avatar-preview img { width: 100%; height: 100%; object-fit: contain; object-position: center; background: #f0f0f0; }
+    [data-theme="dark"] .avatar-preview img { background: #1a1a1a; }
+    .avatar-controls { flex: 1; }
+    .avatar-controls p { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; }
+    .avatar-controls .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .mini-avatar { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; font-size: 0.6rem; font-weight: 700; vertical-align: middle; flex-shrink: 0; }
+    .mini-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+
+    .toast { position: fixed; bottom: 30px; right: 30px; background: var(--text-primary); color: var(--bg-secondary); padding: 15px 25px; border-radius: 8px; font-size: 0.9rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); opacity: 0; transform: translateY(20px); transition: all 0.3s; z-index: 99999; max-width: 350px; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { background: var(--success); color: #fff; }
+    .toast.error { background: var(--danger); color: #fff; }
+    .toast.warning { background: var(--warning); color: #fff; }
+
+    @media print {
+        body { background: #fff; padding: 0; }
+        .actions, .periode-bar, .header-actions, .tabs, .no-print, .hari-kerja-info, .form-cepat { display: none !important; }
+        thead { position: static; }
+        tfoot { position: static; }
+    }
+
+    @media (max-width: 768px) {
+        body { padding: 10px; }
+        .header { padding: 15px 20px; }
+        .header h1 { font-size: 0.95rem; }
+        .user-badge { font-size: 0.78rem; padding: 5px 12px 5px 5px; }
+        .user-avatar { width: 32px; height: 32px; font-size: 0.9rem; }
+        .periode-bar { padding: 15px; gap: 10px; }
+        .periode-item { min-width: 100px; }
+        .periode-item select, .periode-item input { padding: 10px; font-size: 0.9rem; }
+        .periode-highlight { padding: 10px 14px; font-size: 0.9rem; }
+        .form-cepat { padding: 12px 15px; }
+        .form-cepat-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .form-cepat-item select { padding: 8px; font-size: 0.8rem; }
+        .hari-kerja-info { padding: 15px; gap: 8px; grid-template-columns: repeat(2, 1fr); }
+        .stat-chip { padding: 10px 12px; }
+        .stat-chip .icon-box { width: 32px; height: 32px; font-size: 1rem; }
+        .stat-chip .chip-value { font-size: 0.95rem; }
+        table { font-size: 0.65rem; }
+        thead th { padding: 10px 2px; font-size: 0.55rem; }
+        tbody td { padding: 8px 2px; }
+        .tanggal-cell { font-size: 0.72rem; padding: 6px 2px; }
+        .input-jam { width: 48px; padding: 6px 2px; font-size: 0.62rem; }
+        .select-istirahat { width: 48px; padding: 5px 2px; font-size: 0.6rem; }
+        .istirahat-disabled { width: 48px; padding: 6px 2px; font-size: 0.62rem; }
+        .konversi-badge { padding: 4px 6px; font-size: 0.62rem; min-width: 32px; }
+        .gaji-badge { padding: 4px 5px; font-size: 0.58rem; }
+        .status-select { width: 60px; padding: 4px; font-size: 0.6rem; }
+        .keterangan-cell { font-size: 0.55rem; max-width: 85px; padding: 5px 4px !important; }
+        .lembur-detail { font-size: 0.5rem; }
+        tfoot td { padding: 12px 3px; font-size: 0.7rem; }
+        .grand-total { font-size: 0.8rem !important; }
+        .actions { padding: 15px; }
+        .btn { padding: 9px 14px; font-size: 0.78rem; }
+        .stats-grid { padding: 15px; gap: 12px; }
+        .chart-container { padding: 15px; }
+        .history-container { padding: 15px; }
+        .tab { padding: 12px 14px; font-size: 0.78rem; }
+        .login-box { padding: 30px 25px; }
+        .login-box h1 { font-size: 1.2rem; }
+        .avatar-upload-section { flex-direction: column; text-align: center; }
+        .avatar-preview { width: 100px; height: 100px; }
+    }
+</style>
+</head>
+<body data-theme="light">
+
+<div class="login-screen" id="loginScreen">
+    <div class="login-box">
+        <h1>🏢 UT TOWER BJM</h1>
+        <p class="subtitle">Data Lemburan Karyawan</p>
+        <div class="login-error" id="loginError"></div>
+        <input type="text" id="loginUsername" placeholder="Username" autocomplete="off">
+        <input type="password" id="loginPassword" placeholder="Password" autocomplete="off">
+        <button onclick="doLogin()">Masuk →</button>
+    </div>
+</div>
+
+<div class="app hidden" id="app">
+    <div class="container">
+        <div class="header">
+            <h1>🏢 Data Lemburan Karyawan <span class="tower-badge">UT TOWER BJM</span></h1>
+            <div class="header-actions">
+                <div class="user-badge" onclick="openProfileModal()" title="Profil">
+                    <div class="user-avatar" id="userAvatar"><span id="userAvatarText">👤</span><span class="edit-icon">✏️</span></div>
+                    <span id="userName">-</span>
+                </div>
+                <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Tema">🌙</button>
+                <button class="icon-btn" onclick="logout()" title="Logout">🚪</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="absen" onclick="switchTab('absen')">📝 Absensi</div>
+            <div class="tab" data-tab="konversi" onclick="switchTab('konversi')" id="konversiTab">🔢 Tabel Konversi</div>
+            <div class="tab" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Dashboard</div>
+            <div class="tab" data-tab="history" onclick="switchTab('history')">🕒 Riwayat</div>
+            <div class="tab" data-tab="settings" onclick="switchTab('settings')">⚙️ Pengaturan</div>
+            <div class="tab" data-tab="users" onclick="switchTab('users')" id="usersTab">👥 User</div>
+        </div>
+
+        <div class="tab-content active" id="tab-absen">
+            <div class="periode-bar">
+                <div class="periode-item">
+                    <label>📆 Bulan</label>
+                    <select id="monthSelect"></select>
+                </div>
+                <div class="periode-item">
+                    <label>📅 Tahun</label>
+                    <input type="number" id="yearInput" value="2026" min="2000" max="2100">
+                </div>
+                <div class="periode-item admin-only" id="rateInputGroup">
+                    <label>💰 Upah / Jam</label>
+                    <input type="number" id="rateInput" value="21831" min="0" step="100">
+                </div>
+                <div class="periode-item admin-only" id="jamKerjaGroup">
+                    <label>⏰ Jam Kerja (Senin-Kamis)</label>
+                    <input type="text" id="jamKerjaDefaultInput" value="08:00-17:00" style="text-align:center;">
+                </div>
+                <div class="periode-item admin-only" id="jamKerjaJumatGroup">
+                    <label>🕌 Jam Kerja (Jumat)</label>
+                    <input type="text" id="jamKerjaJumatInput" value="08:00-17:30" style="text-align:center;">
+                </div>
+                <div class="periode-highlight">
+                    <span>📅</span>
+                    <span id="periodeDisplay">Oktober 2026</span>
+                </div>
+            </div>
+
+            <div class="form-cepat">
+                <div class="form-cepat-title">⚡ Input Cepat Absensi — Pilih dari dropdown, klik Tambahkan</div>
+                <div class="form-cepat-grid">
+                    <div class="form-cepat-item">
+                        <label>📅 Tanggal</label>
+                        <select id="qcTanggal"></select>
+                    </div>
+                    <div class="form-cepat-item">
+                        <label>🕐 Jam Masuk</label>
+                        <select id="qcMasuk"></select>
+                    </div>
+                    <div class="form-cepat-item">
+                        <label>🕔 Jam Keluar</label>
+                        <select id="qcKeluar"></select>
+                    </div>
+                    <div class="form-cepat-item">
+                        <label>☕ Istirahat</label>
+                        <select id="qcIstirahat">
+                            <option value="0">0 jam</option>
+                            <option value="0.5">0.5 jam</option>
+                            <option value="1" selected>1 jam</option>
+                            <option value="1.5">1.5 jam</option>
+                            <option value="2">2 jam</option>
+                            <option value="2.5">2.5 jam</option>
+                            <option value="3">3 jam</option>
+                        </select>
+                    </div>
+                    <div class="form-cepat-item">
+                        <label>🕖 Lembur Pulang</label>
+                        <select id="qcLembur"></select>
+                    </div>
+                    <div class="form-cepat-item">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary" onclick="applyQuickInput()" style="width:100%;padding:10px;">➕ Tambahkan</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hari-kerja-info">
+                <div class="stat-chip blue">
+                    <div class="icon-box">🗓️</div>
+                    <div class="chip-info"><span class="chip-label">Total Hari</span><span class="chip-value" id="jumlahHari">31</span></div>
+                </div>
+                <div class="stat-chip green">
+                    <div class="icon-box">💼</div>
+                    <div class="chip-info"><span class="chip-label">Hari Kerja</span><span class="chip-value" id="jumlahHariKerja">-</span></div>
+                </div>
+                <div class="stat-chip red">
+                    <div class="icon-box">🎉</div>
+                    <div class="chip-info"><span class="chip-label">Hari Libur</span><span class="chip-value" id="jumlahHariLibur">-</span></div>
+                </div>
+                <div class="stat-chip yellow clickable" onclick="showLiburNasionalDetail()" title="Klik detail">
+                    <div class="icon-box">🏖️</div>
+                    <div class="chip-info"><span class="chip-label">Libur Nasional</span><span class="chip-value" id="jumlahLiburNasional">-</span></div>
+                </div>
+                <div class="stat-chip purple">
+                    <div class="icon-box">✅</div>
+                    <div class="chip-info"><span class="chip-label">Sudah Diisi</span><span class="chip-value" id="jumlahHariAktif">-</span></div>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;">TGL</th>
+                            <th style="width: 70px;">HARI</th>
+                            <th style="width: 75px;">JAM MASUK</th>
+                            <th style="width: 75px;">JAM KELUAR</th>
+                            <th style="width: 72px;" class="col-istirahat">ISTIRAHAT</th>
+                            <th style="width: 85px;" class="col-lembur-pulang">LEMBUR PULANG</th>
+                            <th style="width: 90px;">JAM LEMBUR</th>
+                            <th style="width: 75px;">KONVERSI</th>
+                            <th style="width: 110px;">UPAH</th>
+                            <th style="width: 85px;">STATUS</th>
+                            <th style="width: 160px;">KETERANGAN</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="6" class="total-label">TOTAL</td>
+                            <td><span class="total-badge" id="totalJam">0</span></td>
+                            <td><span class="total-badge" id="totalKonversi">0</span></td>
+                            <td class="grand-total" id="totalGaji">Rp0</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-primary" onclick="simpanData()">💾 Simpan</button>
+                <button class="btn btn-success" onclick="exportCSV()">📊 Export CSV</button>
+                <button class="btn btn-warning" onclick="window.print()">🖨️ Print</button>
+                <button class="btn btn-purple" onclick="showModal('importModal')">📥 Import CSV</button>
+                <button class="btn btn-secondary" onclick="loadData()">🔄 Muat Ulang</button>
+                <button class="btn btn-danger" onclick="resetData()">🗑️ Reset</button>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-konversi">
+            <div class="konversi-ref">
+                <div class="chart-wrapper">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="margin: 0;">🔢 Tabel Konversi Jam Lembur</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-primary btn-sm" onclick="openKonversiModal()">➕ Tambah</button>
+                            <button class="btn btn-success btn-sm" onclick="saveKonversiTable()">💾 Simpan</button>
+                            <button class="btn btn-warning btn-sm" onclick="resetKonversiTable()">↩️ Reset</button>
+                        </div>
+                    </div>
+                    <table style="max-width: 700px;">
+                        <thead><tr><th style="width: 100px;">Jam Lembur</th><th style="width: 100px;">Konversi</th><th style="width: 80px;">Aksi</th></tr></thead>
+                        <tbody id="konversiTableBody"></tbody>
+                    </table>
+                </div>
+                <div class="chart-wrapper" style="margin-top: 20px;">
+                    <h3>📐 Aturan Perhitungan Lembur</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8;">
+                        • <b>Jam Kerja Normal:</b><br>
+                        &nbsp;&nbsp;Senin-Kamis: 08:00 – 17:00<br>
+                        &nbsp;&nbsp;Jumat: 08:00 – 17:30<br><br>
+                        • <b>Hari Kerja (Senin-Jumat):</b> cukup isi <b>Lembur Pulang</b> saja<br>
+                        • <b>Lembur Wajib:</b> 1 jam setelah jam kerja selesai<br>
+                        • <b>Lembur Tambahan:</b> Setelah jam wajib berakhir<br><br>
+                        • <b>Sabtu:</b> isi Jam Masuk, Lembur Pulang, dan pilih <b>Istirahat</b> (0–3 jam)<br>
+                        &nbsp;&nbsp;Total lembur = (Lembur Pulang − Jam Masuk) − Istirahat<br>
+                        • <b>Minggu:</b> otomatis <b>Off</b> (tidak ada shift)<br>
+                        • <b>Libur Nasional:</b> isi Jam Masuk & Lembur Pulang jika lembur<br><br>
+                        • <b>Format Jam:</b> cukup ketik <code>1800</code> → otomatis jadi <code>18:00</code><br>
+                        • <b>Dropdown Lembur:</b> hanya tersedia mulai jam <b>18:00</b> ke atas
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-dashboard">
+            <div class="stats-grid" id="statsGrid"></div>
+            <div class="chart-container">
+                <div class="chart-wrapper"><h3>📈 Tren Jam Lembur Harian</h3><div class="chart-canvas-wrapper"><canvas id="chartHarian"></canvas></div></div>
+                <div class="chart-wrapper"><h3>🥧 Distribusi Status Kehadiran</h3><div class="chart-canvas-wrapper"><canvas id="chartStatus"></canvas></div></div>
+                <div class="chart-wrapper"><h3>📊 Perbandingan Bulanan</h3><div class="chart-canvas-wrapper"><canvas id="chartBulanan"></canvas></div></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-history">
+            <div class="history-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                    <h3>🕒 Riwayat Penyimpanan</h3>
+                    <button class="btn btn-danger btn-sm" onclick="clearHistory()">🗑️ Hapus Semua</button>
+                </div>
+                <div class="history-list" id="historyList"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-settings">
+            <div style="padding: 30px; max-width: 700px;">
+                <div class="chart-wrapper">
+                    <h3>⚙️ Pengaturan Umum</h3>
+                    <div class="form-group"><label>Nama Perusahaan / Unit</label><input type="text" id="companyName"></div>
+                    <div class="form-group">
+                        <label>Mata Uang</label>
+                        <select id="currencySelect">
+                            <option value="IDR">🇮🇩 Rupiah (Rp)</option>
+                            <option value="USD">🇺🇸 Dollar ($)</option>
+                            <option value="MYR">🇲🇾 Ringgit (RM)</option>
+                            <option value="SGD">🇸🇬 Singapore Dollar (S$)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveSettings()">💾 Simpan</button>
+                </div>
+                <div class="chart-wrapper" style="margin-top: 20px;">
+                    <h3>💾 Backup & Restore</h3>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-success" onclick="backupAll()">📤 Backup JSON</button>
+                        <button class="btn btn-warning" onclick="document.getElementById('restoreFile').click()">📥 Restore JSON</button>
+                        <input type="file" id="restoreFile" accept=".json" style="display: none;" onchange="restoreAll(event)">
+                    </div>
+                </div>
+                <div class="chart-wrapper" style="margin-top: 20px; border-color: var(--danger);">
+                    <h3 style="color: var(--danger);">⚠️ Zona Berbahaya</h3>
+                    <button class="btn btn-danger" onclick="factoryReset()">🔥 Factory Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-users">
+            <div style="padding: 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                    <h3>👥 Manajemen User</h3>
+                    <button class="btn btn-primary" onclick="showAddUser()">➕ Tambah User</button>
+                </div>
+                <div id="usersListContainer"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="importModal">
+    <div class="modal">
+        <div class="modal-header"><h2>📥 Import CSV</h2><button class="modal-close" onclick="closeModal('importModal')">×</button></div>
+        <div class="modal-body">
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">Format: <code>Tanggal,Jam Masuk,Jam Keluar,Istirahat,Lembur Pulang,Status</code></p>
+            <input type="file" id="importFile" accept=".csv,.txt">
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('importModal')">Batal</button>
+            <button class="btn btn-primary" onclick="processImport()">📥 Import</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="userModal">
+    <div class="modal">
+        <div class="modal-header"><h2 id="userModalTitle">➕ Tambah User</h2><button class="modal-close" onclick="closeModal('userModal')">×</button></div>
+        <div class="modal-body">
+            <input type="hidden" id="editUserIndex" value="-1">
+            <input type="hidden" id="currentAvatarData" value="">
+            <div class="avatar-upload-section">
+                <div class="avatar-preview" id="avatarPreview"><span id="avatarPreviewText">👤</span></div>
+                <div class="avatar-controls">
+                    <p><b>Foto Profil</b></p>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('avatarFile').click()">📷 Upload</button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeAvatarPreview()">🗑️ Hapus</button>
+                    </div>
+                    <input type="file" id="avatarFile" accept="image/*" style="display: none;" onchange="handleAvatarUpload(event)">
+                </div>
+            </div>
+            <div class="form-group"><label>Username</label><input type="text" id="newUsername"></div>
+            <div class="form-group"><label>Password</label><input type="text" id="newPassword"></div>
+            <div class="form-group"><label>Nama Lengkap</label><input type="text" id="newFullName"></div>
+            <div class="form-group"><label>Role</label><select id="newRole"><option value="user">User</option><option value="admin">Admin</option></select></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('userModal')">Batal</button>
+            <button class="btn btn-primary" onclick="saveUser()">💾 Simpan</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="konversiModal">
+    <div class="modal">
+        <div class="modal-header"><h2 id="konversiModalTitle">➕ Tambah Konversi</h2><button class="modal-close" onclick="closeModal('konversiModal')">×</button></div>
+        <div class="modal-body">
+            <input type="hidden" id="editKonversiIndex" value="-1">
+            <div class="form-group"><label>Jam Lembur</label><input type="text" id="newJam" inputmode="decimal"></div>
+            <div class="form-group"><label>Nilai Konversi</label><input type="text" id="newKonversi" inputmode="decimal"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('konversiModal')">Batal</button>
+            <button class="btn btn-primary" onclick="saveKonversiEntry()">💾 Simpan</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="profileModal">
+    <div class="modal">
+        <div class="modal-header"><h2>👤 Profil Saya</h2><button class="modal-close" onclick="closeModal('profileModal')">×</button></div>
+        <div class="modal-body">
+            <input type="hidden" id="profileAvatarData" value="">
+            <div class="avatar-upload-section">
+                <div class="avatar-preview" id="profileAvatarPreview"><span id="profileAvatarPreviewText">👤</span></div>
+                <div class="avatar-controls">
+                    <p><b>Foto Profil</b></p>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('profileAvatarFile').click()">📷 Upload</button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeProfileAvatarPreview()">🗑️ Hapus</button>
+                    </div>
+                    <input type="file" id="profileAvatarFile" accept="image/*" style="display: none;" onchange="handleProfileAvatarUpload(event)">
+                </div>
+            </div>
+            <div class="form-group"><label>Nama Lengkap</label><input type="text" id="profileFullName"></div>
+            <div class="form-group"><label>Username</label><input type="text" id="profileUsername" disabled style="opacity:0.6;"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('profileModal')">Batal</button>
+            <button class="btn btn-primary" onclick="saveProfile()">💾 Simpan</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="liburNasionalModal">
+    <div class="modal" style="max-width: 550px;">
+        <div class="modal-header"><h2 id="liburNasionalTitle">🏖️ Detail Libur Nasional</h2><button class="modal-close" onclick="closeModal('liburNasionalModal')">×</button></div>
+        <div class="modal-body" id="liburNasionalBody"></div>
+        <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('liburNasionalModal')">Tutup</button></div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============ GLOBAL STATE ============
+let currentUser = null;
+let dataAbsen = {};
+let users = [];
+let history = [];
+let charts = {};
+let settings = { currency: 'IDR', companyName: 'UT TOWER BJM' };
+
+let jamKerjaNormal = {
+    default: { mulai: 8 * 60, selesai: 17 * 60 },
+    jumat: { mulai: 8 * 60, selesai: 17 * 60 + 30 }
+};
+
+const HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const CURRENCY_SYMBOLS = { IDR: 'Rp', USD: '$', MYR: 'RM', SGD: 'S$' };
+
+const DEFAULT_USERS = [
+    { username: 'admin', password: 'admin123', fullName: 'Administrator', role: 'admin', avatar: '' },
+    { username: 'user', password: 'user123', fullName: 'Ferry Suryadi', role: 'user', avatar: '' }
+];
+
+const DEFAULT_MONTH = 9;
+const DEFAULT_YEAR = 2026;
+const DEFAULT_RATE = 21831;
+
+const DEFAULT_KONVERSI = [
+    { jam: 0.5, konversi: 0.5 }, { jam: 1, konversi: 1.5 }, { jam: 1.5, konversi: 2.5 },
+    { jam: 2, konversi: 3.5 }, { jam: 2.5, konversi: 4.5 }, { jam: 3, konversi: 5.5 },
+    { jam: 3.5, konversi: 6.5 }, { jam: 7, konversi: 14 }, { jam: 8, konversi: 16 },
+    { jam: 8.5, konversi: 17 }, { jam: 9, konversi: 19 }, { jam: 9.5, konversi: 21 },
+    { jam: 10, konversi: 23 }, { jam: 10.5, konversi: 25 }, { jam: 11, konversi: 27 }
+];
+
+const HARI_LIBUR_2026 = {
+    '2026-0-1': 'Tahun Baru 2026', '2026-0-16': 'Isra Mikraj Nabi Muhammad SAW',
+    '2026-1-17': 'Tahun Baru Imlek 2577 Kongzili', '2026-2-19': 'Hari Suci Nyepi (Tahun Baru Saka 1948)',
+    '2026-2-21': 'Idul Fitri 1447 H', '2026-2-22': 'Idul Fitri 1447 H',
+    '2026-3-3': 'Wafat Yesus Kristus', '2026-3-5': 'Kebangkitan Yesus Kristus (Paskah)',
+    '2026-4-1': 'Hari Buruh Internasional', '2026-4-14': 'Kenaikan Yesus Kristus',
+    '2026-4-27': 'Idul Adha 1447 H', '2026-4-31': 'Hari Raya Waisak 2570 BE',
+    '2026-5-1': 'Hari Lahir Pancasila', '2026-5-16': '1 Muharam Tahun Baru Islam 1448 H',
+    '2026-7-17': 'Proklamasi Kemerdekaan RI', '2026-7-25': 'Maulid Nabi Muhammad SAW',
+    '2026-11-25': 'Kelahiran Yesus Kristus',
+    '2026-1-16': 'Cuti Bersama: Tahun Baru Imlek', '2026-2-18': 'Cuti Bersama: Hari Suci Nyepi',
+    '2026-2-20': 'Cuti Bersama: Idul Fitri', '2026-2-23': 'Cuti Bersama: Idul Fitri',
+    '2026-2-24': 'Cuti Bersama: Idul Fitri', '2026-4-15': 'Cuti Bersama: Kenaikan Yesus Kristus',
+    '2026-4-28': 'Cuti Bersama: Idul Adha', '2026-11-24': 'Cuti Bersama: Kelahiran Yesus Kristus'
+};
+
+function isHariLibur(year, month, day) {
+    return HARI_LIBUR_2026[`${year}-${month}-${day}`] || null;
+}
+
+let konversiTable = JSON.parse(JSON.stringify(DEFAULT_KONVERSI));
+
+function parseAngka(str) {
+    if (str === '' || str === null || str === undefined) return null;
+    let s = String(str).trim().replace(',', '.');
+    if (s === '') return null;
+    if (!/^-?\d*\.?\d*$/.test(s)) return null;
+    const num = parseFloat(s);
+    return isNaN(num) ? null : num;
+}
+
+function formatAngka(num) {
+    if (num === 0 || !num) return '0';
+    return String(num).replace('.', ',');
+}
+
+function formatMenitKeJam(menit) {
+    const h = Math.floor(menit / 60);
+    const m = menit % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+function parseJamKeMenit(str) {
+    if (!str || typeof str !== 'string') return null;
+    const match = str.trim().match(/^(\d{1,2})[:.](\d{2})$/);
+    if (!match) return null;
+    const h = parseInt(match[1]);
+    const m = parseInt(match[2]);
+    if (h < 0 || h > 23 || m < 0 || m > 59) return null;
+    return h * 60 + m;
+}
+
+function autoFormatJam(val) {
+    if (!val) return null;
+    val = String(val).trim().replace(/[.:]/g, '');
+    if (val === '') return null;
+    if (!/^\d+$/.test(val)) return null;
+    let h, m;
+    if (val.length === 1) { h = parseInt(val); m = 0; }
+    else if (val.length === 2) { h = parseInt(val); m = 0; }
+    else if (val.length === 3) { h = parseInt(val.substring(0, 1)); m = parseInt(val.substring(1, 3)); }
+    else if (val.length === 4) { h = parseInt(val.substring(0, 2)); m = parseInt(val.substring(2, 4)); }
+    else { const s = val.slice(-4); h = parseInt(s.substring(0, 2)); m = parseInt(s.substring(2, 4)); }
+    if (isNaN(h) || isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) return null;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+function parseJamKerjaNormal(str, isJumat = false) {
+    const defaultVal = isJumat ? { mulai: 8 * 60, selesai: 17 * 60 + 30 } : { mulai: 8 * 60, selesai: 17 * 60 };
+    if (!str) return defaultVal;
+    const parts = str.split('-').map(s => s.trim());
+    if (parts.length !== 2) return defaultVal;
+    const mulai = parseJamKeMenit(parts[0]);
+    const selesai = parseJamKeMenit(parts[1]);
+    if (mulai === null || selesai === null) return defaultVal;
+    return { mulai, selesai };
+}
+
+function loadJamKerjaNormal() {
+    const saved = localStorage.getItem('absenJamKerja');
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            if (parsed.default && parsed.jumat) jamKerjaNormal = parsed;
+        } catch (e) {}
+    }
+    const inputDefault = document.getElementById('jamKerjaDefaultInput');
+    const inputJumat = document.getElementById('jamKerjaJumatInput');
+    if (inputDefault) inputDefault.value = `${formatMenitKeJam(jamKerjaNormal.default.mulai)}-${formatMenitKeJam(jamKerjaNormal.default.selesai)}`;
+    if (inputJumat) inputJumat.value = `${formatMenitKeJam(jamKerjaNormal.jumat.mulai)}-${formatMenitKeJam(jamKerjaNormal.jumat.selesai)}`;
+}
+
+function saveJamKerjaNormal() {
+    const inputDefault = document.getElementById('jamKerjaDefaultInput');
+    const inputJumat = document.getElementById('jamKerjaJumatInput');
+    if (inputDefault) jamKerjaNormal.default = parseJamKerjaNormal(inputDefault.value, false);
+    if (inputJumat) jamKerjaNormal.jumat = parseJamKerjaNormal(inputJumat.value, true);
+    localStorage.setItem('absenJamKerja', JSON.stringify(jamKerjaNormal));
+}
+
+function getJamKerjaNormal(hariIndex) {
+    return hariIndex === 5 ? jamKerjaNormal.jumat : jamKerjaNormal.default;
+}
+
+function hitungJamLembur(jamMasukStr, jamPulangStr, isLibur, hariIndex, istirahatJam = 0) {
+    let masukStr = jamMasukStr;
+    let pulangStr = jamPulangStr;
+    if (masukStr && !/^\d{1,2}[:.]\d{2}$/.test(masukStr.trim())) {
+        const f = autoFormatJam(masukStr);
+        if (f) masukStr = f;
+    }
+    if (pulangStr && !/^\d{1,2}[:.]\d{2}$/.test(pulangStr.trim())) {
+        const f = autoFormatJam(pulangStr);
+        if (f) pulangStr = f;
+    }
+    const masuk = parseJamKeMenit(masukStr);
+    const pulang = parseJamKeMenit(pulangStr);
+    if (masuk === null || pulang === null) return { total: 0, sebelum: 0, wajib: 0, sesudah: 0 };
+    let masukMenit = masuk;
+    let pulangMenit = pulang;
+    if (pulangMenit <= masukMenit) pulangMenit += 24 * 60;
+    let totalKerja = pulangMenit - masukMenit;
+    if (isLibur) {
+        const istirahatMenit = (parseFloat(istirahatJam) || 0) * 60;
+        totalKerja = Math.max(0, totalKerja - istirahatMenit);
+        return { total: totalKerja / 60, sebelum: 0, wajib: totalKerja / 60, sesudah: 0 };
+    }
+    const { mulai, selesai } = getJamKerjaNormal(hariIndex);
+    const batasLemburWajib = selesai + 60;
+    let sebelum = 0, wajib = 0, sesudah = 0;
+    if (masukMenit < mulai) sebelum = Math.max(0, Math.min(mulai, pulangMenit) - masukMenit);
+    if (pulangMenit > selesai) wajib = Math.max(0, Math.min(pulangMenit, batasLemburWajib) - selesai);
+    if (pulangMenit > batasLemburWajib) sesudah = pulangMenit - batasLemburWajib;
+    return { total: (sebelum + wajib + sesudah) / 60, sebelum: sebelum / 60, wajib: wajib / 60, sesudah: sesudah / 60 };
+}
+
+// FORM INPUT CEPAT
+function populateQuickInput() {
+    const month = parseInt(document.getElementById('monthSelect').value);
+    const year = parseInt(document.getElementById('yearInput').value);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    const qcTanggal = document.getElementById('qcTanggal');
+    if (qcTanggal) {
+        qcTanggal.innerHTML = '';
+        for (let d = 1; d <= daysInMonth; d++) {
+            const date = new Date(year, month, d);
+            const hari = HARI[date.getDay()];
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = `${d} - ${hari}`;
+            qcTanggal.appendChild(opt);
+        }
+    }
+    
+    const jamOptions = [];
+    for (let h = 0; h < 24; h++) {
+        jamOptions.push(`${String(h).padStart(2, '0')}:00`);
+        jamOptions.push(`${String(h).padStart(2, '0')}:30`);
+    }
+    
+    // 🎯 Dropdown Lembur Pulang: hanya dari jam 18:00 ke atas
+    const jamOptionsLembur = [];
+    for (let h = 18; h < 24; h++) {
+        jamOptionsLembur.push(`${String(h).padStart(2, '0')}:00`);
+        jamOptionsLembur.push(`${String(h).padStart(2, '0')}:30`);
+    }
+    
+    const qcMasuk = document.getElementById('qcMasuk');
+    const qcKeluar = document.getElementById('qcKeluar');
+    const qcLembur = document.getElementById('qcLembur');
+    
+    if (qcMasuk) {
+        qcMasuk.innerHTML = '<option value="">-- Pilih --</option>' + 
+            jamOptions.map(j => `<option value="${j}" ${j === '08:00' ? 'selected' : ''}>${j}</option>`).join('');
+    }
+    if (qcKeluar) {
+        qcKeluar.innerHTML = '<option value="">-- Pilih --</option>' + 
+            jamOptions.map(j => `<option value="${j}" ${j === '17:00' ? 'selected' : ''}>${j}</option>`).join('');
+    }
+    if (qcLembur) {
+        qcLembur.innerHTML = '<option value="">-- Kosong --</option>' + 
+            jamOptionsLembur.map(j => `<option value="${j}">${j}</option>`).join('');
+    }
+}
+
+function applyQuickInput() {
+    const month = parseInt(document.getElementById('monthSelect').value);
+    const year = parseInt(document.getElementById('yearInput').value);
+    const tanggal = parseInt(document.getElementById('qcTanggal').value);
+    const masuk = document.getElementById('qcMasuk').value;
+    const keluar = document.getElementById('qcKeluar').value;
+    const istirahat = parseFloat(document.getElementById('qcIstirahat').value);
+    const lembur = document.getElementById('qcLembur').value;
+    
+    if (!tanggal) { showToast('⚠️ Pilih tanggal dulu', 'warning'); return; }
+    
+    const key = `${year}-${month}-${tanggal}`;
+    if (!dataAbsen[key]) dataAbsen[key] = {};
+    
+    if (masuk) dataAbsen[key].jamMasuk = masuk;
+    if (keluar) dataAbsen[key].jamKeluar = keluar;
+    if (lembur) dataAbsen[key].lemburPulang = lembur;
+    dataAbsen[key].istirahat = istirahat;
+    
+    document.getElementById('qcLembur').value = '';
+    
+    renderTable();
+    showToast(`✅ Data tanggal ${tanggal} berhasil diisi`, 'success');
+}
+
+// AVATAR
+function getUserByUsername(username) { return users.find(u => u.username === username); }
+function getInitials(fullName) { return (fullName || '?').split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase(); }
+
+function updateHeaderAvatar() {
+    const user = getUserByUsername(currentUser?.username);
+    const avatarEl = document.getElementById('userAvatar');
+    if (!user) return;
+    const editIcon = '<span class="edit-icon">✏️</span>';
+    const inner = user.avatar ? `<img src="${user.avatar}" alt="${user.fullName}">` : `<span style="font-weight:700; font-size:0.9rem;">${getInitials(user.fullName)}</span>`;
+    avatarEl.innerHTML = inner + editIcon;
+    document.getElementById('userName').textContent = user.fullName;
+}
+
+function handleAvatarUpload(event) {
+    const file = event.target.files[0];
+    if (!file || !file.type.startsWith('image/')) { showToast('⚠️ File harus gambar', 'warning'); event.target.value = ''; return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        document.getElementById('currentAvatarData').value = e.target.result;
+        document.getElementById('avatarPreview').innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+        showToast('✅ Foto siap disimpan', 'success');
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeAvatarPreview() {
+    document.getElementById('currentAvatarData').value = '';
+    document.getElementById('avatarPreview').innerHTML = '<span id="avatarPreviewText">👤</span>';
+    document.getElementById('avatarFile').value = '';
+}
+
+function handleProfileAvatarUpload(event) {
+    const file = event.target.files[0];
+    if (!file || !file.type.startsWith('image/')) { showToast('⚠️ File harus gambar', 'warning'); event.target.value = ''; return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        document.getElementById('profileAvatarData').value = e.target.result;
+        document.getElementById('profileAvatarPreview').innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+        showToast('✅ Foto siap disimpan', 'success');
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeProfileAvatarPreview() {
+    document.getElementById('profileAvatarData').value = '';
+    const user = getUserByUsername(currentUser?.username);
+    document.getElementById('profileAvatarPreview').innerHTML = user?.avatar
+        ? `<img src="${user.avatar}" alt="${user.fullName}">`
+        : `<span id="profileAvatarPreviewText">${getInitials(user?.fullName)}</span>`;
+    document.getElementById('profileAvatarFile').value = '';
+}
+
+// INIT
+window.addEventListener('DOMContentLoaded', () => {
+    const savedUsers = localStorage.getItem('absenUsers');
+    users = savedUsers ? JSON.parse(savedUsers) : [...DEFAULT_USERS];
+    users = users.map(u => ({ ...u, avatar: u.avatar || '' }));
+    if (!savedUsers) localStorage.setItem('absenUsers', JSON.stringify(users));
+
+    document.body.setAttribute('data-theme', localStorage.getItem('absenTheme') || 'light');
+    updateThemeIcon();
+
+    const savedKonversi = localStorage.getItem('absenKonversiTable');
+    if (savedKonversi) { try { konversiTable = JSON.parse(savedKonversi); } catch (e) {} }
+
+    const monthSelect = document.getElementById('monthSelect');
+    BULAN.forEach((b, i) => {
+        const opt = document.createElement('option');
+        opt.value = i; opt.textContent = b;
+        monthSelect.appendChild(opt);
+    });
+    monthSelect.value = DEFAULT_MONTH;
+    document.getElementById('yearInput').value = DEFAULT_YEAR;
+    document.getElementById('rateInput').value = DEFAULT_RATE;
+
+    loadJamKerjaNormal();
+
+    monthSelect.addEventListener('change', () => { populateQuickInput(); renderTable(); });
+    document.getElementById('yearInput').addEventListener('change', () => { populateQuickInput(); renderTable(); });
+    document.getElementById('rateInput').addEventListener('input', renderTable);
+
+    const jkDefault = document.getElementById('jamKerjaDefaultInput');
+    const jkJumat = document.getElementById('jamKerjaJumatInput');
+    if (jkDefault) jkDefault.addEventListener('change', () => { saveJamKerjaNormal(); renderTable(); showToast('✅ Jam kerja diperbarui', 'success'); });
+    if (jkJumat) jkJumat.addEventListener('change', () => { saveJamKerjaNormal(); renderTable(); showToast('✅ Jam kerja diperbarui', 'success'); });
+
+    document.getElementById('loginPassword').addEventListener('keypress', e => { if (e.key === 'Enter') doLogin(); });
+    document.getElementById('loginUsername').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('loginPassword').focus(); });
+
+    populateQuickInput();
+
+    const savedSession = localStorage.getItem('absenSession');
+    if (savedSession) { try { currentUser = JSON.parse(savedSession); enterApp(); } catch (e) {} }
+});
+
+// LOGIN
+function doLogin() {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errorEl = document.getElementById('loginError');
+    if (!username || !password) { errorEl.textContent = '⚠️ Username dan password wajib diisi!'; return; }
+    const user = users.find(u => u.username === username && u.password === password);
+    if (!user) { errorEl.textContent = '❌ Username atau password salah!'; return; }
+    errorEl.textContent = '';
+    currentUser = { username: user.username, fullName: user.fullName, role: user.role };
+    localStorage.setItem('absenSession', JSON.stringify(currentUser));
+    enterApp();
+    showToast(`👋 Selamat datang, ${user.fullName}!`, 'success');
+}
+
+function enterApp() {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    const freshUser = getUserByUsername(currentUser.username);
+    if (freshUser) { currentUser.fullName = freshUser.fullName; currentUser.role = freshUser.role; }
+    updateHeaderAvatar();
+    const isAdmin = currentUser.role === 'admin';
+    document.getElementById('konversiTab').classList.toggle('hidden', !isAdmin);
+    document.getElementById('usersTab').classList.toggle('hidden', !isAdmin);
+    document.getElementById('rateInputGroup').classList.toggle('hidden', !isAdmin);
+    document.getElementById('jamKerjaGroup').classList.toggle('hidden', !isAdmin);
+    document.getElementById('jamKerjaJumatGroup').classList.toggle('hidden', !isAdmin);
+    loadAllData();
+    populateQuickInput();
+    renderTable();
+    renderKonversiTable();
+    if (isAdmin) renderUsers();
+}
+
+function logout() {
+    if (!confirm('Yakin ingin logout?')) return;
+    currentUser = null;
+    localStorage.removeItem('absenSession');
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('app').classList.add('hidden');
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginError').textContent = '';
+}
+
+function toggleTheme() {
+    const next = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.body.setAttribute('data-theme', next);
+    localStorage.setItem('absenTheme', next);
+    updateThemeIcon();
+    if (document.getElementById('tab-dashboard').classList.contains('active')) renderCharts();
+}
+
+function updateThemeIcon() {
+    document.getElementById('themeBtn').textContent = document.body.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+}
+
+function switchTab(tabName) {
+    if (currentUser?.role !== 'admin' && (tabName === 'konversi' || tabName === 'users')) {
+        showToast('⛔ Akses ditolak', 'error'); return;
+    }
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+    document.getElementById('tab-' + tabName).classList.add('active');
+    if (tabName === 'dashboard') { renderStats(); setTimeout(renderCharts, 50); }
+    else if (tabName === 'history') renderHistory();
+    else if (tabName === 'users') renderUsers();
+    else if (tabName === 'settings') loadSettingsUI();
+    else if (tabName === 'konversi') renderKonversiTable();
+}
+
+function formatRupiah(angka) {
+    const symbol = CURRENCY_SYMBOLS[settings.currency] || 'Rp';
+    return symbol + Math.round(angka).toLocaleString('id-ID');
+}
+
+function formatNumber(num) {
+    if (num === 0 || !num) return '0';
+    return Number.isInteger(num) ? num.toString() : num.toFixed(1);
+}
+
+function getRate() {
+    const savedSettings = localStorage.getItem('absenSettings');
+    if (savedSettings) { try { const s = JSON.parse(savedSettings); if (s.rate) return parseFloat(s.rate); } catch (e) {} }
+    if (currentUser?.role === 'admin') {
+        const rateInput = document.getElementById('rateInput');
+        if (rateInput) return parseFloat(rateInput.value) || DEFAULT_RATE;
+    }
+    return DEFAULT_RATE;
+}
+
+function hitungKonversi(jam) {
+    if (!jam || jam <= 0) return 0;
+    jam = parseFloat(jam);
+    const found = konversiTable.find(k => Math.abs(k.jam - jam) < 0.001);
+    if (found) return found.konversi;
+    const sorted = [...konversiTable].sort((a, b) => a.jam - b.jam);
+    const min = sorted[0], max = sorted[sorted.length - 1];
+    if (jam < min.jam) return jam;
+    if (jam > max.jam) return jam * 2 + 5;
+    for (let i = 0; i < sorted.length - 1; i++) {
+        const a = sorted[i], b = sorted[i + 1];
+        if (jam > a.jam && jam < b.jam) {
+            const rasio = (jam - a.jam) / (b.jam - a.jam);
+            return a.konversi + rasio * (b.konversi - a.konversi);
+        }
+    }
+    return jam + 2.5;
+}
+
+// RENDER KONVERSI
+function renderKonversiTable() {
+    const tbody = document.getElementById('konversiTableBody');
+    if (!tbody) return;
+    if (konversiTable.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--text-muted);">Belum ada data</td></tr>`;
+        return;
+    }
+    const sorted = [...konversiTable].sort((a, b) => a.jam - b.jam);
+    tbody.innerHTML = sorted.map(k => {
+        const realIdx = konversiTable.indexOf(k);
+        return `<tr>
+            <td><input type="text" class="konversi-input" value="${formatAngka(k.jam)}" onchange="editKonversiInline(${realIdx}, 'jam', this.value)" inputmode="decimal"></td>
+            <td><input type="text" class="konversi-input" value="${formatAngka(k.konversi)}" onchange="editKonversiInline(${realIdx}, 'konversi', this.value)" inputmode="decimal"></td>
+            <td><button class="btn btn-danger btn-sm" onclick="deleteKonversi(${realIdx})">🗑️</button></td>
+        </tr>`;
+    }).join('');
+}
+
+function editKonversiInline(idx, field, value) {
+    const num = parseAngka(value);
+    if (num === null || num < 0) { showToast('⚠️ Nilai tidak valid', 'warning'); renderKonversiTable(); return; }
+    konversiTable[idx][field] = num;
+}
+
+function saveKonversiTable() {
+    const jamSet = new Set();
+    for (const k of konversiTable) {
+        if (jamSet.has(k.jam)) { showToast(`⚠️ Jam ${k.jam} duplikat!`, 'error'); return; }
+        jamSet.add(k.jam);
+    }
+    localStorage.setItem('absenKonversiTable', JSON.stringify(konversiTable));
+    renderTable(); renderKonversiTable();
+    showToast('✅ Tersimpan!', 'success');
+}
+
+function resetKonversiTable() {
+    if (!confirm('Reset ke default?')) return;
+    konversiTable = JSON.parse(JSON.stringify(DEFAULT_KONVERSI));
+    localStorage.setItem('absenKonversiTable', JSON.stringify(konversiTable));
+    renderTable(); renderKonversiTable();
+    showToast('↩️ Direset', 'success');
+}
+
+function deleteKonversi(idx) {
+    if (!confirm(`Hapus jam ${konversiTable[idx].jam}?`)) return;
+    konversiTable.splice(idx, 1);
+    renderKonversiTable();
+    localStorage.setItem('absenKonversiTable', JSON.stringify(konversiTable));
+    renderTable();
+}
+
+function openKonversiModal(idx = -1) {
+    document.getElementById('konversiModalTitle').textContent = idx === -1 ? '➕ Tambah' : '✏️ Edit';
+    document.getElementById('editKonversiIndex').value = idx;
+    if (idx === -1) {
+        document.getElementById('newJam').value = '';
+        document.getElementById('newKonversi').value = '';
+    } else {
+        document.getElementById('newJam').value = formatAngka(konversiTable[idx].jam);
+        document.getElementById('newKonversi').value = formatAngka(konversiTable[idx].konversi);
+    }
+    showModal('konversiModal');
+}
+
+function saveKonversiEntry() {
+    const idx = parseInt(document.getElementById('editKonversiIndex').value);
+    const jam = parseAngka(document.getElementById('newJam').value);
+    const konversi = parseAngka(document.getElementById('newKonversi').value);
+    if (jam === null || jam < 0 || konversi === null || konversi < 0) { showToast('⚠️ Nilai tidak valid', 'warning'); return; }
+    const dup = konversiTable.findIndex((k, i) => Math.abs(k.jam - jam) < 0.001 && i !== idx);
+    if (dup !== -1) { showToast(`⚠️ Jam ${jam} sudah ada!`, 'error'); return; }
+    if (idx === -1) konversiTable.push({ jam, konversi });
+    else konversiTable[idx] = { jam, konversi };
+    localStorage.setItem('absenKonversiTable', JSON.stringify(konversiTable));
+    closeModal('konversiModal'); renderKonversiTable(); renderTable();
+    showToast('✅ Tersimpan', 'success');
+}
+
+// RENDER TABLE UTAMA
+function renderTable() {
+    const month = parseInt(document.getElementById('monthSelect').value);
+    const year = parseInt(document.getElementById('yearInput').value);
+    const rate = getRate();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    document.getElementById('periodeDisplay').textContent = `${BULAN[month]} ${year}`;
+
+    let hariKerja = 0, hariLibur = 0, hariAktif = 0, liburNasional = 0;
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+    let totalJam = 0, totalKonversi = 0, totalGaji = 0;
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const hariIndex = date.getDay();
+        const hariNama = HARI[hariIndex];
+        const isWeekend = hariIndex === 0 || hariIndex === 6;
+        const namaLibur = isHariLibur(year, month, day);
+        const isLiburNasional = !!namaLibur;
+        const isHoliday = isWeekend || isLiburNasional;
+        const isHariKerjaNormal = !isHoliday;
+        const isSabtu = hariIndex === 6;
+
+        if (isLiburNasional) liburNasional++;
+        if (isHoliday) hariLibur++; else hariKerja++;
+
+        const key = `${year}-${month}-${day}`;
+        const data = dataAbsen[key] || {};
+        const isSpecialStatus = data.status === 'cuti' || data.status === 'off';
+
+        const jamMasuk = isSpecialStatus ? '' : (data.jamMasuk || '');
+        const jamKeluar = isSpecialStatus ? '' : (data.jamKeluar || '');
+        const lemburPulang = isSpecialStatus ? '' : (data.lemburPulang || '');
+        const istirahat = data.istirahat !== undefined ? parseFloat(data.istirahat) : 0;
+
+        let hasilLembur = { total: 0, sebelum: 0, wajib: 0, sesudah: 0 };
+        if (!isSpecialStatus) {
+            if (isHariKerjaNormal) {
+                const jamPulang = lemburPulang || jamKeluar;
+                if (jamMasuk && jamPulang) {
+                    hasilLembur = hitungJamLembur(jamMasuk, jamPulang, false, hariIndex, 0);
+                }
+            } else {
+                const jamPulang = lemburPulang || jamKeluar;
+                if (jamMasuk && jamPulang) {
+                    const ist = (isSabtu || hariIndex === 0 || isLiburNasional) ? istirahat : 0;
+                    hasilLembur = hitungJamLembur(jamMasuk, jamPulang, true, hariIndex, ist);
+                }
+            }
+        }
+        const jamLembur = hasilLembur.total;
+
+        if (jamLembur > 0 || isSpecialStatus || lemburPulang) hariAktif++;
+
+        const konversi = hitungKonversi(jamLembur);
+        const gaji = konversi * rate;
+        totalJam += jamLembur; totalKonversi += konversi; totalGaji += gaji;
+
+        let hariClass = 'hari-kerja';
+        if (isLiburNasional) hariClass = 'hari-libur-nasional';
+        else if (hariIndex === 0) hariClass = 'hari-minggu';
+        else if (isSabtu) hariClass = 'hari-sabtu';
+
+        let defaultStatus;
+        if (data.status) defaultStatus = data.status;
+        else if (hariIndex === 0) defaultStatus = 'off';
+        else if (isHoliday) defaultStatus = 'libur';
+        else defaultStatus = 'kerja';
+
+        let lemburDetail = '';
+        if (!isSpecialStatus && jamLembur > 0) {
+            if (isHoliday) {
+                const ist = istirahat || 0;
+                let detail = `Full: ${formatNumber(jamLembur)} j`;
+                if (ist > 0) detail += ` (ist. ${formatNumber(ist)}j)`;
+                lemburDetail = `<span class="lembur-item item-wajib">${detail}</span>`;
+            } else {
+                if (hasilLembur.sebelum > 0) lemburDetail += `<span class="lembur-item item-sebelum">⬅️ ${formatNumber(hasilLembur.sebelum)}j</span>`;
+                if (hasilLembur.wajib > 0) lemburDetail += `<span class="lembur-item item-wajib">${formatNumber(hasilLembur.wajib)}j</span>`;
+                if (hasilLembur.sesudah > 0) lemburDetail += `<span class="lembur-item item-tambahan">➕ ${formatNumber(hasilLembur.sesudah)}j</span>`;
+            }
+        }
+
+        let keterangan = '', ketClass = 'ket-kerja';
+        if (namaLibur) {
+            keterangan = `🎉 ${namaLibur}`;
+            ketClass = 'ket-libur-nasional';
+        } else if (data.status === 'cuti') {
+            keterangan = '🏖️ Cuti'; ketClass = 'ket-cuti';
+        } else if (data.status === 'off') {
+            keterangan = '💤 Off'; ketClass = 'ket-off';
+        } else if (hariIndex === 0) {
+            if (jamLembur > 0) {
+                keterangan = `🔥 Minggu Lembur (${formatNumber(jamLembur)} jam)`;
+                ketClass = 'ket-lembur';
+            } else {
+                keterangan = '💤 Minggu (Off)'; ketClass = 'ket-off';
+            }
+        } else if (isSabtu) {
+            if (jamLembur > 0) {
+                const ist = istirahat || 0;
+                keterangan = `🔥 Sabtu Lembur (${formatNumber(jamLembur)} jam${ist > 0 ? `, ist. ${formatNumber(ist)}j` : ''})`;
+                ketClass = 'ket-lembur';
+            } else {
+                keterangan = '📅 Sabtu (Libur)'; ketClass = 'ket-weekend';
+            }
+        } else if (jamLembur > 0) {
+            keterangan = `⏰ Lembur ${formatNumber(jamLembur)} jam`;
+            ketClass = 'ket-lembur';
+        } else if (jamMasuk || jamKeluar) {
+            keterangan = '✅ Kerja Normal'; ketClass = 'ket-kerja';
+        } else {
+            keterangan = '— Belum diisi —'; ketClass = 'ket-weekend';
+        }
+
+        const tr = document.createElement('tr');
+        if (isLiburNasional) tr.classList.add('row-libur-nasional');
+        else if (isSabtu) tr.classList.add('row-sabtu');
+        else if (hariIndex === 0) tr.classList.add('row-minggu');
+
+        const lemburPulangHTML = `<input type="text" class="input-jam lembur-pulang-input" inputmode="text"
+            value="${lemburPulang}" placeholder=""
+            ${isSpecialStatus ? 'disabled' : ''}
+            onchange="onChangeJam('${key}', 'lemburPulang', this)"
+            onblur="onBlurJam('${key}', 'lemburPulang', this)">`;
+
+        const istirahatHTML = (isHoliday || isSabtu)
+            ? `<select class="select-istirahat" onchange="onChangeIstirahat('${key}', this.value)">
+                <option value="0" ${istirahat === 0 ? 'selected' : ''}>0 j</option>
+                <option value="1" ${istirahat === 1 ? 'selected' : ''}>1 j</option>
+                <option value="1.5" ${istirahat === 1.5 ? 'selected' : ''}>1,5 j</option>
+                <option value="2" ${istirahat === 2 ? 'selected' : ''}>2 j</option>
+                <option value="2.5" ${istirahat === 2.5 ? 'selected' : ''}>2,5 j</option>
+                <option value="3" ${istirahat === 3 ? 'selected' : ''}>3 j</option>
+               </select>`
+            : `<span class="istirahat-disabled">—</span>`;
+
+        tr.innerHTML = `
+            <td class="tanggal-cell">${day}</td>
+            <td class="hari-cell ${hariClass}">${hariNama}</td>
+            <td>
+                <input type="text" class="input-jam editable-libur" inputmode="text"
+                    value="${jamMasuk}" placeholder=""
+                    ${isSpecialStatus ? 'disabled' : ''}
+                    onchange="onChangeJam('${key}', 'jamMasuk', this)"
+                    onblur="onBlurJam('${key}', 'jamMasuk', this)">
+            </td>
+            <td>
+                <input type="text" class="input-jam editable-libur" inputmode="text"
+                    value="${jamKeluar}" placeholder=""
+                    ${isSpecialStatus ? 'disabled' : ''}
+                    onchange="onChangeJam('${key}', 'jamKeluar', this)"
+                    onblur="onBlurJam('${key}', 'jamKeluar', this)">
+            </td>
+            <td>${istirahatHTML}</td>
+            <td>${lemburPulangHTML}</td>
+            <td>
+                <span class="konversi-badge lembur-badge">${jamLembur > 0 ? formatNumber(jamLembur) + ' j' : '-'}</span>
+                ${lemburDetail ? `<div class="lembur-detail">${lemburDetail}</div>` : ''}
+            </td>
+            <td><span class="konversi-badge">${jamLembur > 0 ? formatNumber(konversi) : '-'}</span></td>
+            <td><span class="gaji-badge">${gaji > 0 ? formatRupiah(gaji) : '-'}</span></td>
+            <td>
+                <select class="status-select" onchange="updateStatus('${key}', this.value)">
+                    <option value="kerja" ${defaultStatus === 'kerja' ? 'selected' : ''}>Kerja</option>
+                    <option value="libur" ${defaultStatus === 'libur' ? 'selected' : ''}>Libur</option>
+                    <option value="cuti" ${defaultStatus === 'cuti' ? 'selected' : ''}>Cuti</option>
+                    <option value="off" ${defaultStatus === 'off' ? 'selected' : ''}>Off</option>
+                </select>
+            </td>
+            <td class="keterangan-cell ${ketClass}" title="${keterangan}">${keterangan}</td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    document.getElementById('jumlahHari').textContent = daysInMonth;
+    document.getElementById('jumlahHariKerja').textContent = hariKerja;
+    document.getElementById('jumlahHariLibur').textContent = hariLibur;
+    document.getElementById('jumlahLiburNasional').textContent = liburNasional;
+    document.getElementById('jumlahHariAktif').textContent = hariAktif;
+    document.getElementById('totalJam').textContent = formatNumber(totalJam);
+    document.getElementById('totalKonversi').textContent = formatNumber(totalKonversi);
+    document.getElementById('totalGaji').textContent = formatRupiah(totalGaji);
+
+    autoSave();
+}
+
+function onChangeJam(key, field, inputEl) {
+    let val = inputEl.value.trim();
+    if (val === '') {
+        if (!dataAbsen[key]) dataAbsen[key] = {};
+        delete dataAbsen[key][field];
+        renderTable();
+        return;
+    }
+    if (!dataAbsen[key]) dataAbsen[key] = {};
+    dataAbsen[key][field] = val;
+}
+
+function onBlurJam(key, field, inputEl) {
+    const raw = inputEl.value.trim();
+    if (raw === '') return;
+    const formatted = autoFormatJam(raw);
+    if (formatted === null) {
+        inputEl.classList.add('invalid');
+        showToast('⚠️ Format jam tidak valid (contoh: 1800 atau 18:00)', 'warning');
+        return;
+    }
+    inputEl.value = formatted;
+    inputEl.classList.remove('invalid');
+    if (!dataAbsen[key]) dataAbsen[key] = {};
+    dataAbsen[key][field] = formatted;
+    renderTable();
+}
+
+function onChangeIstirahat(key, value) {
+    if (!dataAbsen[key]) dataAbsen[key] = {};
+    dataAbsen[key].istirahat = parseFloat(value);
+    renderTable();
+}
+
+// DETAIL LIBUR NASIONAL
+function showLiburNasionalDetail() {
+    const month = parseInt(document.getElementById('monthSelect').value);
+    const year = parseInt(document.getElementById('yearInput').value);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const periodeText = `${BULAN[month]} ${year}`;
+    let items = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+        const namaLibur = isHariLibur(year, month, day);
+        if (!namaLibur) continue;
+        const date = new Date(year, month, day);
+        items.push({ day, hari: HARI[date.getDay()], nama: namaLibur });
+    }
+    document.getElementById('liburNasionalTitle').textContent = `🏖️ Libur Nasional — ${periodeText}`;
+    let html = `<div class="libur-summary"><span class="summary-label">Total Libur Nasional & Cuti Bersama</span><span class="summary-value">${items.length} hari</span></div>`;
+    if (items.length === 0) {
+        html += `<div class="libur-empty"><div class="icon">📭</div><p>Tidak ada libur nasional bulan ini</p></div>`;
+    } else {
+        html += `<div class="libur-list">`;
+        items.forEach(item => {
+            const bulanSingkat = BULAN[month].substring(0, 3).toUpperCase();
+            html += `<div class="libur-item">
+                <div class="libur-date">${item.day}<small>${bulanSingkat}</small></div>
+                <div class="libur-info"><div class="libur-hari">📅 ${item.hari}</div><div class="libur-nama">🎉 ${item.nama}</div></div>
+            </div>`;
+        });
+        html += `</div>`;
+    }
+    document.getElementById('liburNasionalBody').innerHTML = html;
+    showModal('liburNasionalModal');
+}
+
+function updateStatus(key, status) {
+    if (!dataAbsen[key]) dataAbsen[key] = {};
+    dataAbsen[key].status = status;
+    if (status === 'cuti' || status === 'off') {
+        delete dataAbsen[key].jamMasuk;
+        delete dataAbsen[key].jamKeluar;
+        delete dataAbsen[key].lemburPulang;
+        delete dataAbsen[key].istirahat;
+    }
+    renderTable();
+}
+
+// SAVE/LOAD
+function autoSave() {
+    if (!currentUser) return;
+    const payload = {
+        data: dataAbsen,
+        rate: document.getElementById('rateInput')?.value || getRate(),
+        month: document.getElementById('monthSelect').value,
+        year: document.getElementById('yearInput').value
+    };
+    localStorage.setItem('dataAbsen_' + currentUser.username, JSON.stringify(payload));
+}
+
+function simpanData() {
+    autoSave();
+    if (currentUser.role === 'admin') {
+        const rateInput = document.getElementById('rateInput');
+        if (rateInput) {
+            const savedSettings = localStorage.getItem('absenSettings');
+            let s = savedSettings ? JSON.parse(savedSettings) : { currency: 'IDR', companyName: 'UT TOWER BJM' };
+            s.rate = parseFloat(rateInput.value) || DEFAULT_RATE;
+            localStorage.setItem('absenSettings', JSON.stringify(s));
+            settings = s;
+        }
+    }
+    const month = parseInt(document.getElementById('monthSelect').value);
+    const year = parseInt(document.getElementById('yearInput').value);
+    history.unshift({
+        id: Date.now(), user: currentUser.username, month: BULAN[month], year: year,
+        timestamp: new Date().toISOString(),
+        dataCount: Object.keys(dataAbsen).filter(k => dataAbsen[k].jamMasuk || dataAbsen[k].lemburPulang || dataAbsen[k].status).length
+    });
+    history = history.slice(0, 50);
+    localStorage.setItem('absenHistory', JSON.stringify(history));
+    showToast('✅ Data berhasil disimpan!', 'success');
+}
+
+function loadData() {
+    if (!confirm('Muat ulang data?')) return;
+    loadAllData(); populateQuickInput(); renderTable();
+    showToast('🔄 Data dimuat ulang');
+}
+
+function loadAllData() {
+    const key = 'dataAbsen_' + (currentUser?.username || 'guest');
+    const saved = localStorage.getItem(key);
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            dataAbsen = parsed.data || {};
+            if (parsed.month !== undefined) document.getElementById('monthSelect').value = parsed.month;
+            if (parsed.year) document.getElementById('yearInput').value = parsed.year;
+        } catch (e) {}
+    } else {
+        dataAbsen = {};
+        document.getElementById('monthSelect').value = DEFAULT_MONTH;
+        document.getElementById('yearInput').value = DEFAULT_YEAR;
+    }
+    const savedHistory = localStorage.getItem('absenHistory');
+    history = savedHistory ? JSON.parse(savedHistory) : [];
+    const savedSettings = localStorage.getItem('absenSettings');
+    if (savedSettings) {
+        try {
+            settings = { ...settings, ...JSON.parse(savedSettings) };
+            if (settings.rate && currentUser?.role === 'admin') {
+                const rateInput = document.getElementById('rateInput');
+                if (rateInput) rateInput.value = settings.rate;
+            }
+        } catch (e) {}
+    }
+}
+
+function resetData() {
+    const month = parseInt(document.getElementById('monthSelect').value);
+    const year = parseInt(document.getElementById('yearInput').value);
+    const bulanNama = BULAN[month];
+    
+    if (!confirm(`⚠️ HAPUS SEMUA DATA ${bulanNama} ${year}?\n\nSemua data absensi di bulan ini akan dihapus permanen.`)) return;
+    if (!confirm(`Yakin? Data yang sudah dihapus tidak bisa dikembalikan!`)) return;
+    
+    let count = 0;
+    Object.keys(dataAbsen).forEach(k => {
+        const [y, m] = k.split('-');
+        if (parseInt(y) === year && parseInt(m) === month) {
+            delete dataAbsen[k];
+            count++;
+        }
+    });
+    
+    autoSave();
+    renderTable();
+    showToast(`🗑️ ${count} data berhasil dihapus`, 'success');
+}
+
+// EXPORT CSV
+function exportCSV() {
+    const month = parseInt(document.getElementById('monthSelect').value);
+    const year = parseInt(document.getElementById('yearInput').value);
+    const rate = getRate();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    let csv = `Data Lemburan Karyawan UT TOWER BJM\n`;
+    csv += `Nama: ${currentUser.fullName}\n`;
+    csv += `Periode: ${BULAN[month]} ${year}\n`;
+    csv += `Jam Kerja Senin-Kamis: ${formatMenitKeJam(jamKerjaNormal.default.mulai)}-${formatMenitKeJam(jamKerjaNormal.default.selesai)}\n`;
+    csv += `Jam Kerja Jumat: ${formatMenitKeJam(jamKerjaNormal.jumat.mulai)}-${formatMenitKeJam(jamKerjaNormal.jumat.selesai)}\n\n`;
+    csv += `Tanggal,Hari,Jam Masuk,Jam Keluar,Istirahat,Lembur Pulang,Jam Lembur,Konversi,Upah,Status,Keterangan\n`;
+    let tJam = 0, tKon = 0, tGaji = 0;
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const hariIndex = date.getDay();
+        const hariNama = HARI[hariIndex];
+        const namaLibur = isHariLibur(year, month, day);
+        const key = `${year}-${month}-${day}`;
+        const data = dataAbsen[key] || {};
+        const isSpecial = data.status === 'cuti' || data.status === 'off';
+        const isWeekend = hariIndex === 0 || hariIndex === 6;
+        const isHoliday = isWeekend || !!namaLibur;
+        const isHariKerjaNormal = !isHoliday;
+        const isSabtu = hariIndex === 6;
+        const jamMasuk = isSpecial ? '' : (data.jamMasuk || '');
+        const jamKeluar = isSpecial ? '' : (data.jamKeluar || '');
+        const lemburPulang = isSpecial ? '' : (data.lemburPulang || '');
+        const istirahat = (isHoliday || isSabtu) && !isSpecial ? (data.istirahat !== undefined ? parseFloat(data.istirahat) : 0) : 0;
+
+        let hasilLembur = { total: 0 };
+        if (!isSpecial && jamMasuk) {
+            if (isHariKerjaNormal) {
+                const jamPulang = lemburPulang || jamKeluar;
+                if (jamPulang) hasilLembur = hitungJamLembur(jamMasuk, jamPulang, false, hariIndex, 0);
+            } else {
+                const jamPulang = lemburPulang || jamKeluar;
+                if (jamPulang) hasilLembur = hitungJamLembur(jamMasuk, jamPulang, true, hariIndex, istirahat);
+            }
+        }
+        const jam = hasilLembur.total;
+        const kon = hitungKonversi(jam);
+        const gaji = kon * rate;
+        
+        let defaultStatus;
+        if (data.status) defaultStatus = data.status;
+        else if (hariIndex === 0) defaultStatus = 'off';
+        else if (isHoliday) defaultStatus = 'libur';
+        else defaultStatus = 'kerja';
+        
+        let ket = '';
+        if (namaLibur) ket = namaLibur;
+        else if (data.status === 'cuti') ket = 'Cuti';
+        else if (data.status === 'off') ket = 'Off';
+        else if (hariIndex === 0) ket = jam > 0 ? `Lembur Full ${jam} jam` : 'Minggu (Off)';
+        else if (isSabtu) ket = jam > 0 ? `Lembur Full ${jam} jam` : 'Sabtu (Libur)';
+        else if (jam > 0) ket = `Lembur ${jam} jam`;
+        else if (jamMasuk || jamKeluar) ket = 'Kerja Normal';
+        else ket = 'Belum diisi';
+        
+        tJam += jam; tKon += kon; tGaji += gaji;
+        csv += `${day},${hariNama},${jamMasuk},${jamKeluar},${istirahat || ''},${lemburPulang},${jam || ''},${kon || ''},${gaji ? Math.round(gaji) : ''},${defaultStatus},"${ket}"\n`;
+    }
+    csv += `TOTAL,,,,,,${formatNumber(tJam)},${formatNumber(tKon)},${Math.round(tGaji)},,`;
+    downloadFile(csv, `Lemburan_${currentUser.fullName.replace(/\s+/g, '_')}_${BULAN[month]}_${year}.csv`, 'text/csv;charset=utf-8;');
+    showToast('📊 CSV berhasil di-download', 'success');
+}
+
+function downloadFile(content, filename, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url; link.download = filename;
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+// MODALS
+function showModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function processImport() {
+    const file = document.getElementById('importFile').files[0];
+    if (!file) { showToast('⚠️ Pilih file dulu', 'warning'); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const text = e.target.result;
+        const lines = text.split(/\r?\n/).filter(l => l.trim());
+        const month = parseInt(document.getElementById('monthSelect').value);
+        const year = parseInt(document.getElementById('yearInput').value);
+        let imported = 0;
+        lines.forEach((line, idx) => {
+            if (idx === 0 && line.toLowerCase().includes('tanggal')) return;
+            const cols = line.split(',');
+            if (cols.length < 3) return;
+            const day = parseInt(cols[0]);
+            if (isNaN(day) || day < 1 || day > 31) return;
+            const key = `${year}-${month}-${day}`;
+            if (!dataAbsen[key]) dataAbsen[key] = {};
+            const masuk = (cols[1] || '').trim();
+            const keluar = (cols[2] || '').trim();
+            const ist = (cols[3] || '').trim();
+            const lembur = (cols[4] || '').trim();
+            const status = (cols[5] || '').trim();
+            if (masuk && autoFormatJam(masuk)) dataAbsen[key].jamMasuk = autoFormatJam(masuk);
+            if (keluar && autoFormatJam(keluar)) dataAbsen[key].jamKeluar = autoFormatJam(keluar);
+            if (ist) dataAbsen[key].istirahat = parseFloat(ist);
+            if (lembur && autoFormatJam(lembur)) dataAbsen[key].lemburPulang = autoFormatJam(lembur);
+            if (status) dataAbsen[key].status = status;
+            imported++;
+        });
+        closeModal('importModal');
+        document.getElementById('importFile').value = '';
+        renderTable();
+        showToast(`📥 Import ${imported} baris!`, 'success');
+    };
+    reader.readAsText(file);
+}
+
+// DASHBOARD
+function renderStats() {
+    const month = parseInt(document.getElementById('monthSelect').value);
+    const year = parseInt(document.getElementById('yearInput').value);
+    const rate = getRate();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    let totalJam = 0, totalGaji = 0, totalLemburHari = 0, totalLiburNasional = 0;
+    for (let day = 1; day <= daysInMonth; day++) {
+        if (isHariLibur(year, month, day)) totalLiburNasional++;
+        const key = `${year}-${month}-${day}`;
+        const data = dataAbsen[key] || {};
+        const isSpecial = data.status === 'cuti' || data.status === 'off';
+        const date = new Date(year, month, day);
+        const hariIndex = date.getDay();
+        const isHoliday = hariIndex === 0 || hariIndex === 6 || !!isHariLibur(year, month, day);
+        const isHariKerjaNormal = !isHoliday;
+        const isSabtu = hariIndex === 6;
+        const jamMasuk = isSpecial ? '' : (data.jamMasuk || '');
+        const jamKeluar = isSpecial ? '' : (data.jamKeluar || '');
+        const lemburPulang = isSpecial ? '' : (data.lemburPulang || '');
+        const istirahat = data.istirahat !== undefined ? parseFloat(data.istirahat) : 0;
+        let jam = 0;
+        if (jamMasuk) {
+            if (isHariKerjaNormal) {
+                const jamPulang = lemburPulang || jamKeluar;
+                if (jamPulang) jam = hitungJamLembur(jamMasuk, jamPulang, false, hariIndex, 0).total;
+            } else {
+                const jamPulang = lemburPulang || jamKeluar;
+                if (jamPulang) jam = hitungJamLembur(jamMasuk, jamPulang, true, hariIndex, istirahat).total;
+            }
+        }
+        totalJam += jam;
+        totalGaji += hitungKonversi(jam) * rate;
+        if (jam > 0) totalLemburHari++;
+    }
+    const avgJam = totalLemburHari > 0 ? (totalJam / totalLemburHari).toFixed(1) : '0';
+    document.getElementById('statsGrid').innerHTML = `
+        <div class="stat-card"><div class="stat-icon blue">⏰</div><div class="stat-info"><h3>Total Jam Lembur</h3><p>${formatNumber(totalJam)} jam</p></div></div>
+        <div class="stat-card"><div class="stat-icon green">💰</div><div class="stat-info"><h3>Total Upah Lembur</h3><p>${formatRupiah(totalGaji)}</p></div></div>
+        <div class="stat-card"><div class="stat-icon yellow">📅</div><div class="stat-info"><h3>Hari Lembur</h3><p>${totalLemburHari} hari</p></div></div>
+        <div class="stat-card"><div class="stat-icon red">🎉</div><div class="stat-info"><h3>Libur Nasional</h3><p>${totalLiburNasional} hari</p></div></div>
+    `;
+}
+
+function renderCharts() {
+    const month = parseInt(document.getElementById('monthSelect').value);
+    const year = parseInt(document.getElementById('yearInput').value);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const isDark = document.body.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#cbd5e1' : '#475569';
+    const gridColor = isDark ? '#334155' : '#e2e8f0';
+
+    const labelsHarian = [], dataHarian = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+        labelsHarian.push(day);
+        const key = `${year}-${month}-${day}`;
+        const d = dataAbsen[key] || {};
+        const isSpecial = d.status === 'cuti' || d.status === 'off';
+        const date = new Date(year, month, day);
+        const hariIndex = date.getDay();
+        const isHoliday = hariIndex === 0 || hariIndex === 6 || !!isHariLibur(year, month, day);
+        const isHariKerjaNormal = !isHoliday;
+        const isSabtu = hariIndex === 6;
+        const jamMasuk = isSpecial ? '' : (d.jamMasuk || '');
+        const jamKeluar = isSpecial ? '' : (d.jamKeluar || '');
+        const lemburPulang = isSpecial ? '' : (d.lemburPulang || '');
+        const istirahat = d.istirahat !== undefined ? parseFloat(d.istirahat) : 0;
+        let jam = 0;
+        if (jamMasuk) {
+            if (isHariKerjaNormal) {
+                const jamPulang = lemburPulang || jamKeluar;
+                if (jamPulang) jam = hitungJamLembur(jamMasuk, jamPulang, false, hariIndex, 0).total;
+            } else {
+                const jamPulang = lemburPulang || jamKeluar;
+                if (jamPulang) jam = hitungJamLembur(jamMasuk, jamPulang, true, hariIndex, istirahat).total;
+            }
+        }
+        dataHarian.push(jam);
+    }
+
+    if (charts.harian) charts.harian.destroy();
+    charts.harian = new Chart(document.getElementById('chartHarian'), {
+        type: 'bar',
+        data: { labels: labelsHarian, datasets: [{ label: 'Jam Lembur', data: dataHarian, backgroundColor: 'rgba(59, 130, 246, 0.7)', borderColor: '#3b82f6', borderWidth: 1, borderRadius: 4 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: textColor } } }, scales: { y: { beginAtZero: true, ticks: { color: textColor }, grid: { color: gridColor } }, x: { ticks: { color: textColor }, grid: { color: gridColor } } } }
+    });
+
+    let kerja = 0, libur = 0, cuti = 0, off = 0;
+    for (let day = 1; day <= daysInMonth; day++) {
+        const d = dataAbsen[`${year}-${month}-${day}`] || {};
+        const date = new Date(year, month, day);
+        let status;
+        if (d.status) status = d.status;
+        else if (date.getDay() === 0) status = 'off';
+        else if (date.getDay() === 6 || isHariLibur(year, month, day)) status = 'libur';
+        else status = 'kerja';
+        if (status === 'kerja') kerja++; else if (status === 'libur') libur++; else if (status === 'cuti') cuti++; else if (status === 'off') off++;
+    }
+
+    if (charts.status) charts.status.destroy();
+    charts.status = new Chart(document.getElementById('chartStatus'), {
+        type: 'doughnut',
+        data: { labels: ['Kerja', 'Libur', 'Cuti', 'Off'], datasets: [{ data: [kerja, libur, cuti, off], backgroundColor: ['#10b981', '#94a3b8', '#f59e0b', '#8b5cf6'], borderWidth: 2, borderColor: isDark ? '#1e293b' : '#fff' }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, padding: 15 } } } }
+    });
+
+    const monthTotals = [];
+    for (let m = 0; m < 12; m++) {
+        let total = 0;
+        const daysInM = new Date(year, m + 1, 0).getDate();
+        for (let day = 1; day <= daysInM; day++) {
+            const d = dataAbsen[`${year}-${m}-${day}`] || {};
+            const date = new Date(year, m, day);
+            const hariIndex = date.getDay();
+            const isHoliday = hariIndex === 0 || hariIndex === 6 || !!isHariLibur(year, m, day);
+            const isHariKerjaNormal = !isHoliday;
+            const isSpecial = d.status === 'cuti' || d.status === 'off';
+            const isSabtu = hariIndex === 6;
+            const jamMasuk = isSpecial ? '' : (d.jamMasuk || '');
+            const jamKeluar = isSpecial ? '' : (d.jamKeluar || '');
+            const lemburPulang = isSpecial ? '' : (d.lemburPulang || '');
+            const istirahat = d.istirahat !== undefined ? parseFloat(d.istirahat) : 0;
+            if (jamMasuk) {
+                if (isHariKerjaNormal) {
+                    const jamPulang = lemburPulang || jamKeluar;
+                    if (jamPulang) total += hitungJamLembur(jamMasuk, jamPulang, false, hariIndex, 0).total;
+                } else {
+                    const jamPulang = lemburPulang || jamKeluar;
+                    if (jamPulang) total += hitungJamLembur(jamMasuk, jamPulang, true, hariIndex, istirahat).total;
+                }
+            }
+        }
+        monthTotals.push(total);
+    }
+
+    if (charts.bulanan) charts.bulanan.destroy();
+    charts.bulanan = new Chart(document.getElementById('chartBulanan'), {
+        type: 'line',
+        data: { labels: BULAN.map(b => b.substring(0, 3)), datasets: [{ label: 'Total Jam Lembur', data: monthTotals, borderColor: '#8b5cf6', backgroundColor: 'rgba(139, 92, 246, 0.15)', tension: 0.4, fill: true, pointBackgroundColor: '#8b5cf6', pointRadius: 5 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: textColor } } }, scales: { y: { beginAtZero: true, ticks: { color: textColor }, grid: { color: gridColor } }, x: { ticks: { color: textColor }, grid: { color: gridColor } } } }
+    });
+}
+
+// HISTORY
+function renderHistory() {
+    const container = document.getElementById('historyList');
+    if (history.length === 0) {
+        container.innerHTML = `<div class="empty-state"><div class="icon">🕒</div><p>Belum ada riwayat</p></div>`;
+        return;
+    }
+    container.innerHTML = history.map(h => {
+        const timeStr = new Date(h.timestamp).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+        const userObj = getUserByUsername(h.user);
+        const avatarHTML = userObj?.avatar
+            ? `<span class="mini-avatar"><img src="${userObj.avatar}" alt=""></span>`
+            : `<span class="mini-avatar">${getInitials(userObj?.fullName || h.user)}</span>`;
+        return `<div class="history-item">
+            <div class="history-info"><h4>📅 ${h.month} ${h.year}</h4><p>${avatarHTML} ${userObj?.fullName || h.user} • 🕒 ${timeStr} • 📝 ${h.dataCount} entri</p></div>
+            <div class="history-actions"><button class="btn btn-primary btn-sm" onclick="restoreHistory(${h.id})">🔄 Muat</button></div>
+        </div>`;
+    }).join('');
+}
+
+function clearHistory() {
+    if (!confirm('Hapus semua riwayat?')) return;
+    history = []; localStorage.setItem('absenHistory', JSON.stringify(history));
+    renderHistory(); showToast('🗑️ Riwayat dihapus', 'warning');
+}
+
+function restoreHistory(id) {
+    const h = history.find(x => x.id === id);
+    if (!h) return;
+    document.getElementById('monthSelect').value = BULAN.indexOf(h.month);
+    document.getElementById('yearInput').value = h.year;
+    populateQuickInput();
+    renderTable(); switchTab('absen');
+    showToast(`🔄 Berpindah ke ${h.month} ${h.year}`, 'success');
+}
+
+// SETTINGS
+function loadSettingsUI() {
+    document.getElementById('currencySelect').value = settings.currency;
+    document.getElementById('companyName').value = settings.companyName;
+}
+
+function saveSettings() {
+    settings.currency = document.getElementById('currencySelect').value;
+    settings.companyName = document.getElementById('companyName').value;
+    if (currentUser?.role === 'admin') {
+        const rateInput = document.getElementById('rateInput');
+        if (rateInput) settings.rate = parseFloat(rateInput.value) || DEFAULT_RATE;
+    }
+    localStorage.setItem('absenSettings', JSON.stringify(settings));
+    renderTable(); showToast('✅ Pengaturan disimpan', 'success');
+}
+
+function backupAll() {
+    const backup = { version: '6.0', appName: 'Data Lemburan UT TOWER BJM', exportedAt: new Date().toISOString(), users, history, settings, jamKerjaNormal, currentUser: currentUser.username, data: dataAbsen, konversiTable };
+    downloadFile(JSON.stringify(backup, null, 2), `backup_lemburan_${Date.now()}.json`, 'application/json');
+    showToast('📤 Backup berhasil', 'success');
+}
+
+function restoreAll(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const backup = JSON.parse(e.target.result);
+            if (!backup.data) throw new Error('Format tidak valid');
+            if (confirm('Restore akan menimpa data saat ini. Lanjutkan?')) {
+                dataAbsen = backup.data || {};
+                if (backup.users) { users = backup.users.map(u => ({ ...u, avatar: u.avatar || '' })); localStorage.setItem('absenUsers', JSON.stringify(users)); }
+                if (backup.settings) { settings = { ...settings, ...backup.settings }; localStorage.setItem('absenSettings', JSON.stringify(settings)); }
+                if (backup.history) { history = backup.history; localStorage.setItem('absenHistory', JSON.stringify(history)); }
+                if (backup.konversiTable) { konversiTable = backup.konversiTable; localStorage.setItem('absenKonversiTable', JSON.stringify(konversiTable)); }
+                if (backup.jamKerjaNormal) { jamKerjaNormal = backup.jamKerjaNormal; localStorage.setItem('absenJamKerja', JSON.stringify(jamKerjaNormal)); }
+                loadJamKerjaNormal();
+                autoSave(); populateQuickInput(); renderTable(); renderKonversiTable(); updateHeaderAvatar();
+                showToast('📥 Restore berhasil!', 'success');
+            }
+        } catch (err) { showToast('❌ File backup tidak valid', 'error'); }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+function factoryReset() {
+    if (!confirm('⚠️ Semua data akan dihapus permanen. Lanjutkan?')) return;
+    if (!confirm('Yakin? Tidak bisa dibatalkan!')) return;
+    localStorage.clear();
+    showToast('🔥 Reset berhasil, reload...', 'warning');
+    setTimeout(() => location.reload(), 1500);
+}
+
+// PROFILE
+function openProfileModal() {
+    const user = getUserByUsername(currentUser?.username);
+    if (!user) return;
+    document.getElementById('profileFullName').value = user.fullName;
+    document.getElementById('profileUsername').value = user.username;
+    document.getElementById('profileAvatarData').value = '';
+    document.getElementById('profileAvatarPreview').innerHTML = user.avatar
+        ? `<img src="${user.avatar}" alt="${user.fullName}">`
+        : `<span id="profileAvatarPreviewText">${getInitials(user.fullName)}</span>`;
+    showModal('profileModal');
+}
+
+function saveProfile() {
+    const user = getUserByUsername(currentUser?.username);
+    if (!user) return;
+    const newFullName = document.getElementById('profileFullName').value.trim();
+    if (!newFullName) { showToast('⚠️ Nama kosong', 'warning'); return; }
+    user.fullName = newFullName;
+    const newAvatar = document.getElementById('profileAvatarData').value;
+    if (newAvatar) user.avatar = newAvatar;
+    currentUser.fullName = user.fullName;
+    localStorage.setItem('absenUsers', JSON.stringify(users));
+    localStorage.setItem('absenSession', JSON.stringify(currentUser));
+    updateHeaderAvatar();
+    closeModal('profileModal');
+    showToast('✅ Profil diupdate!', 'success');
+}
+
+// USERS
+function renderUsers() {
+    if (currentUser?.role !== 'admin') return;
+    const container = document.getElementById('usersListContainer');
+    if (users.length === 0) {
+        container.innerHTML = `<div class="empty-state"><div class="icon">👥</div><p>Belum ada user</p></div>`;
+        return;
+    }
+    container.innerHTML = users.map((u, i) => `
+        <div class="user-card">
+            <div class="user-card-content">
+                <div class="user-card-avatar">${u.avatar ? `<img src="${u.avatar}" alt="${u.fullName}">` : `<span style="font-weight:700;">${getInitials(u.fullName)}</span>`}</div>
+                <div class="user-info"><h4>${u.fullName} <span class="role-badge role-${u.role}">${u.role}</span></h4><p>@${u.username}</p></div>
+            </div>
+            <div class="history-actions">
+                <button class="btn btn-primary btn-sm" onclick="editUser(${i})">✏️ Edit</button>
+                ${u.username !== 'admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteUser(${i})">🗑️</button>` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+function showAddUser() {
+    document.getElementById('userModalTitle').textContent = '➕ Tambah User';
+    document.getElementById('editUserIndex').value = '-1';
+    document.getElementById('newUsername').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('newFullName').value = '';
+    document.getElementById('newRole').value = 'user';
+    document.getElementById('newUsername').disabled = false;
+    document.getElementById('currentAvatarData').value = '';
+    document.getElementById('avatarFile').value = '';
+    document.getElementById('avatarPreview').innerHTML = '<span id="avatarPreviewText">👤</span>';
+    showModal('userModal');
+}
+
+function editUser(i) {
+    const u = users[i];
+    document.getElementById('userModalTitle').textContent = '✏️ Edit User';
+    document.getElementById('editUserIndex').value = i;
+    document.getElementById('newUsername').value = u.username;
+    document.getElementById('newPassword').value = u.password;
+    document.getElementById('newFullName').value = u.fullName;
+    document.getElementById('newRole').value = u.role;
+    document.getElementById('newUsername').disabled = u.username === 'admin';
+    document.getElementById('currentAvatarData').value = u.avatar || '';
+    document.getElementById('avatarPreview').innerHTML = u.avatar ? `<img src="${u.avatar}" alt="Preview">` : `<span id="avatarPreviewText">${getInitials(u.fullName)}</span>`;
+    showModal('userModal');
+}
+
+function saveUser() {
+    const idx = parseInt(document.getElementById('editUserIndex').value);
+    const username = document.getElementById('newUsername').value.trim();
+    const password = document.getElementById('newPassword').value;
+    const fullName = document.getElementById('newFullName').value.trim();
+    const role = document.getElementById('newRole').value;
+    const avatar = document.getElementById('currentAvatarData').value;
+    if (!username || !password || !fullName) { showToast('⚠️ Semua field wajib diisi', 'warning'); return; }
+    if (idx === -1) {
+        if (users.some(u => u.username === username)) { showToast('⚠️ Username sudah dipakai', 'warning'); return; }
+        users.push({ username, password, fullName, role, avatar });
+        showToast('✅ User ditambahkan', 'success');
+    } else {
+        const oldUsername = users[idx].username;
+        users[idx] = { username, password, fullName, role, avatar };
+        showToast('✅ User diupdate', 'success');
+        if (oldUsername === currentUser.username) {
+            currentUser.fullName = fullName;
+            localStorage.setItem('absenSession', JSON.stringify(currentUser));
+            updateHeaderAvatar();
+        }
+    }
+    localStorage.setItem('absenUsers', JSON.stringify(users));
+    closeModal('userModal'); renderUsers();
+}
+
+function deleteUser(i) {
+    if (!confirm(`Hapus user "${users[i].fullName}"?`)) return;
+    users.splice(i, 1);
+    localStorage.setItem('absenUsers', JSON.stringify(users));
+    renderUsers(); showToast('🗑️ User dihapus', 'warning');
+}
+
+// TOAST
+function showToast(message, type = '') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = 'toast ' + type;
+    toast.classList.add('show');
+    clearTimeout(toast._timeout);
+    toast._timeout = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's' && currentUser) { e.preventDefault(); simpanData(); }
+    if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+});
+</script>
+
+</body>
+</html>
